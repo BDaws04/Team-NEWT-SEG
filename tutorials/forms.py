@@ -1,7 +1,11 @@
 """Forms for the tutorials app."""
+from typing import Any, Mapping
 from django import forms
 from django.contrib.auth import authenticate
+from django.core.files.base import File
 from django.core.validators import RegexValidator
+from django.db.models.base import Model
+from django.forms.utils import ErrorList
 from .models import User
 
 class LogInForm(forms.Form):
@@ -90,11 +94,24 @@ class PasswordForm(NewPasswordMixin):
 class SignUpForm(NewPasswordMixin, forms.ModelForm):
     """Form enabling unregistered users to sign up."""
 
+    role = forms.ChoiceField(
+        choices=User.Roles.choices,
+        initial=User.Roles.STUDENT,
+        required=True,
+        label="Role"
+    )
+
     class Meta:
         """Form options."""
 
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email']
+        fields = ['first_name', 'last_name', 'username', 'email', 'role']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['role'].choices = [
+            (role, label) for role, label in User.Roles.choices if role != User.Roles.ADMIN
+        ]
 
     def save(self):
         """Create a new user."""
@@ -106,5 +123,6 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             last_name=self.cleaned_data.get('last_name'),
             email=self.cleaned_data.get('email'),
             password=self.cleaned_data.get('new_password'),
+            role=self.cleaned_data.get('role')
         )
         return user

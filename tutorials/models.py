@@ -6,6 +6,11 @@ from libgravatar import Gravatar
 class User(AbstractUser):
     """Model used for user authentication, and team member related information."""
 
+    class Roles(models.TextChoices):
+        ADMIN = 'admin', 'Admin'
+        STUDENT = 'student', 'Student'
+        TUTOR = 'tutor', 'Tutor'
+
     username = models.CharField(
         max_length=30,
         unique=True,
@@ -17,6 +22,11 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False)
+    role = models.CharField(
+        max_length=10,
+        choices=Roles.choices,
+        default=Roles.STUDENT
+    )
 
 
     class Meta:
@@ -28,6 +38,11 @@ class User(AbstractUser):
         """Return a string containing the user's full name."""
 
         return f'{self.first_name} {self.last_name}'
+    
+    def roll(self):
+        """Return a string containing the user's role."""
+
+        return self.role
 
     def gravatar(self, size=120):
         """Return a URL to the user's gravatar."""
