@@ -7,9 +7,9 @@ class User(AbstractUser):
     """Model used for user authentication, and team member related information."""
 
     class Roles(models.TextChoices):
-        ADMIN = 'admin', 'Admin'
-        STUDENT = 'student', 'Student'
-        TUTOR = 'tutor', 'Tutor'
+        ADMIN = 'ADMIN', 'Admin'
+        STUDENT = 'STUDENT', 'Student'
+        TUTOR = 'TUTOR', 'Tutor'
 
     username = models.CharField(
         max_length=30,
@@ -25,7 +25,8 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=10,
         choices=Roles.choices,
-        default=Roles.STUDENT
+        default=Roles.STUDENT,
+        blank=False
     )
 
 

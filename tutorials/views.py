@@ -17,7 +17,16 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    return render(request, 'dashboard.html', {'user': current_user})
+    print(current_user.role)
+
+    if current_user.role == 'STUDENT':
+        return render(request, 'student_dashboard.html', {'user': current_user})
+    elif current_user.role == 'TUTOR':
+        return render(request, 'tutor_dashboard.html', {'user': current_user})
+    elif current_user.role == 'ADMIN':
+        return render(request, 'admin_dashboard.html', {'user': current_user})
+    else:
+        return render(request, 'dashboard.html', {'user': current_user})
 
 
 @login_prohibited
