@@ -10,6 +10,7 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
+from tutorials.models import User
 
 
 @login_required
@@ -160,3 +161,9 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+    
+@login_required
+def list_students(request):
+    """Display all users who are students."""
+    students = User.objects.filter(role=User.Roles.STUDENT)
+    return render(request, 'list_students.html', {'students': students})
