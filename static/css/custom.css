@@ -1,0 +1,217 @@
+/*
+ * Global styles
+ */
+
+
+body.main-page {
+  background: url('/static/images/background.jpg') no-repeat center center fixed;
+  background-size: cover;
+}
+
+body {
+  font-family: Menlo, Monaco, monospace; 
+  font-weight: bold; 
+}
+
+
+
+/*
+ * Alerts
+ */
+
+.alert {
+  border-radius: 0px;
+}
+
+
+/*
+ * Cover page
+ */
+
+.content {
+  padding-top: 10px;
+}
+
+.h-100 {
+  min-height: 100vh;
+  height: 100vh;
+}
+
+.vcenter-item{
+    display: flex;
+    align-items: center;
+}
+
+/*
+ * Cover page
+ */
+h1.cover-heading {
+  font-size: 4rem;
+}
+
+.cover-heading {
+  color: #25593e; 
+}
+
+p.cover-text {
+  font-size: 1.7rem;
+}
+
+.cover-card {
+  background-color: rgba(245, 245, 245, 0.6);
+  max-width: 30rem;
+  padding-top: 30px;
+  padding-left: 50px;
+  padding-right: 50px;
+  padding-bottom: 30px;
+  border-radius: 15%;
+}
+.cover-card-block {
+  opacity: 1
+}
+
+
+
+/*
+ * forms
+ */
+.nolabel label {
+  display: none;
+}
+
+ul.errorlist {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+/*
+ * Typefaces
+ */
+
+.low-key {
+  color: #777777;
+  font-weight: 300;
+}
+
+.list-title {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+/*
+ * Profile
+ */
+.profile-image {
+  width: 120px;
+  clear:both;
+  float:left;
+}
+
+.profile-text {
+  overflow:hidden;
+  padding-left:20px
+}
+
+h3.profile-title {
+  margin-bottom: 0px;
+}
+
+.profile-username {
+  color: #777777;
+  font-weight: 300;
+  font-style: italic;
+}
+
+
+/*
+ * Hyperlinks
+ */
+.content a {
+  text-decoration: none;
+  color: #0d6efd;
+}
+.content a:hover {
+  text-decoration: underline;
+  color: #0d6efd;
+}
+
+.custom-banner {
+  width: 100%; 
+  max-width: 1500px;
+  height:400px;
+  background: rgba(221, 219, 219, 0.9); 
+  border-radius: 30px; 
+  padding: 3rem 2rem; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+.custom-banner h1 {
+  font-size: 2.5rem; 
+}
+
+.custom-banner p {
+  font-size: 1.2rem;
+}
+
+.custom-banner h1.cover-heading {
+  font-weight: 600; 
+  color: #2c4135;
+  font-size: 3rem; 
+  font-family: Menlo, Monaco, monospace; 
+}
+
+/* Style for the Sign Up button */
+.custom-banner a.btn-signup {
+  background-color: #337636; 
+  color: white; 
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 10px;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+}
+
+/* Hover effect for Sign Up button */
+.custom-banner a.btn-signup:hover {
+  background-color: #2b6337; 
+  color: #fff; 
+}
+
+/* Style for the Log In button */
+.custom-banner a.btn-login {
+  background-color: #337636;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 10px;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+}
+
+/* Hover effect for Log In button */
+.custom-banner a.btn-login:hover {
+  background-color: #2b6337;
+  color: #fff;
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 10px 0; 
+  color: #6c757d; 
+  font-weight: bold;
+}
+
+.separator::before,
+.separator::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #dee2e6;
+  margin: 0 10px;
+}
+
+
+
