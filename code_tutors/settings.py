@@ -142,3 +142,6 @@ REDIRECT_URL_WHEN_LOGGED_IN = 'dashboard'
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
+
+USE_TZ = True
+TIME_ZONE = 'UTC'  # or your preferred timezone
