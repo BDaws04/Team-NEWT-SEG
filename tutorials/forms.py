@@ -1,18 +1,30 @@
 """Forms for the tutorials app."""
-from typing import Any, Mapping
 from django import forms
 from django.contrib.auth import authenticate
-from django.core.files.base import File
 from django.core.validators import RegexValidator
-from django.db.models.base import Model
-from django.forms.utils import ErrorList
 from .models import User
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
+    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Username'
+    }))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Password'
+    }))
+    user_type = forms.ChoiceField(
+        choices=[
+            ('student', 'Student'),
+            ('tutor', 'Tutor'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+        }),
+        required=True
+    )
 
-    username = forms.CharField(label="Username")
-    password = forms.CharField(label="Password", widget=forms.PasswordInput())
 
     def get_user(self):
         """Returns authenticated user if possible."""
@@ -94,24 +106,11 @@ class PasswordForm(NewPasswordMixin):
 class SignUpForm(NewPasswordMixin, forms.ModelForm):
     """Form enabling unregistered users to sign up."""
 
-    role = forms.ChoiceField(
-        choices=User.Roles.choices,
-        initial=User.Roles.STUDENT,
-        required=True,
-        label="Role"
-    )
-
     class Meta:
         """Form options."""
 
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'role']
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['role'].choices = [
-            (role, label) for role, label in User.Roles.choices if role != User.Roles.ADMIN
-        ]
+        fields = ['first_name', 'last_name', 'username', 'email']
 
     def save(self):
         """Create a new user."""
@@ -123,6 +122,5 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             last_name=self.cleaned_data.get('last_name'),
             email=self.cleaned_data.get('email'),
             password=self.cleaned_data.get('new_password'),
-            role=self.cleaned_data.get('role')
         )
         return user
