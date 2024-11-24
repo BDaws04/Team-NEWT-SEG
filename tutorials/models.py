@@ -6,12 +6,9 @@ from django.utils.timezone import now
 from datetime import datetime, timedelta
 
 def default_end_time():
-    """Returns the default end time, 2 hours after the current time."""
     return now() + timedelta(hours=2)
 
 class User(AbstractUser):
-    """Model used for user authentication, and team member related information."""
-
     class Roles(models.TextChoices):
         ADMIN = 'ADMIN', 'Admin'
         STUDENT = 'STUDENT', 'Student'
