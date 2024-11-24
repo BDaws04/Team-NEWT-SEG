@@ -56,9 +56,9 @@ class User(AbstractUser):
         return self.gravatar(size=60)
 
 class Student(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')   
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
+    previous_sessions = models.ManyToManyField('Session', related_name='students_taken', blank=True)
     enrollment_date = models.DateField(auto_now_add=True)
-    
     def __str__(self):
         return f'Student: {self.user.get_full_name()}'
 
@@ -94,7 +94,6 @@ class Tutor(models.Model):
         blank=True,
         help_text="Select programming languages the tutor can teach"
     )
-    hourly_rate = models.DecimalField(max_digits=6, decimal_places=2)
 
     def expertise_list(self):
         return ', '.join([language.name for language in self.expertise.all()])
@@ -124,7 +123,7 @@ class Session(models.Model):
         'ProgrammingLanguage',
         on_delete=models.CASCADE,
         related_name='sessions',
-        default=1,  # Replace '1' with the ID of an existing ProgrammingLanguage instance
+        default=1, 
         help_text="Select the programming language for the session"
     )
     tutor = models.ForeignKey('Tutor', on_delete=models.CASCADE, related_name='sessions')
@@ -139,12 +138,13 @@ class Session(models.Model):
         default='Fall',
         help_text="Select the season for the session"
     )
+    frequency = models.CharField(max_length=20, choices=[('Weekly','Weekly'),('By Weekly','By Weekly')], default='Weekly')
     year = models.PositiveIntegerField(help_text="Enter the year (e.g., 2024)",default=2024)
     start_time = models.DateTimeField(default=now)
     end_time = models.DateTimeField(default=default_end_time)
 
     def __str__(self):
-        return f'{self.programming_language.name} ({self.level}) - {self.season} {self.year} - {self.tutor.user.get_full_name()}'
+        return f'{self.programming_language.name} ({self.level}) - {self.season} {self.year} - {self.tutor.user.get_full_name()} - {self.frequency}'
 
 class StudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')

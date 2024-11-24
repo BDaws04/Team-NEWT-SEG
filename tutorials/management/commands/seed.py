@@ -56,7 +56,7 @@ class Command(BaseCommand):
 
             season = choice(['Fall', 'Spring', 'Summer'])
             year = choice(available_years)
-
+            frequency = choice(['Weekly', 'By Weekly'])
             start_time = make_aware(datetime.now() + timedelta(days=randint(1, 30), hours=randint(8, 20)))
             end_time = start_time + timedelta(hours=2)
 
@@ -66,6 +66,7 @@ class Command(BaseCommand):
                 level=choice(['beginner', 'intermediate', 'advanced']),
                 season=season,
                 year=year,
+                frequency = frequency,
                 start_time=start_time,
                 end_time=end_time,
             )
@@ -97,7 +98,7 @@ class Command(BaseCommand):
         admin_user = self.User.objects.create_superuser(
             username='@johndoe',
             email='john.doe@example.org',
-            password=self.DEFAULT_PASSWORD,
+            password='Password123',
             first_name='John',
             last_name='Doe',
         )
@@ -108,13 +109,12 @@ class Command(BaseCommand):
         user = self.User.objects.create_user(
             username='@' + self.faker.unique.user_name(),
             email=self.faker.unique.email(),
-            password=self.DEFAULT_PASSWORD,
+            password='Password123',
             first_name=self.faker.first_name(),
             last_name=self.faker.last_name(),
         )
         tutor = Tutor.objects.create(
             user=user,
-            hourly_rate=randint(20, 100),
         )
         languages = ProgrammingLanguage.objects.order_by('?')[:randint(1, 4)]
         if not languages:
@@ -127,7 +127,7 @@ class Command(BaseCommand):
         student_user = self.User.objects.create_user(
             username='@charlie',
             email='charlie.johnson@example.org',
-            password=self.DEFAULT_PASSWORD,
+            password='Password123',
             first_name='Charlie',
             last_name='Johnson',
         )
@@ -147,13 +147,12 @@ class Command(BaseCommand):
         user = self.User.objects.create_user(
             username='@' + self.faker.unique.user_name(),
             email=self.faker.unique.email(),
-            password=self.DEFAULT_PASSWORD,
+            password='Password123',
             first_name=self.faker.first_name(),
             last_name=self.faker.last_name(),
         )
         tutor = Tutor.objects.create(
             user=user,
-            hourly_rate=randint(20, 100),
         )
 
         # Assign random programming languages
@@ -168,7 +167,7 @@ class Command(BaseCommand):
         user = self.User.objects.create_user(
             username='@' + self.faker.unique.user_name(),
             email=self.faker.unique.email(),
-            password=self.DEFAULT_PASSWORD,
+            password='Password123',
             first_name=self.faker.first_name(),
             last_name=self.faker.last_name(),
         )

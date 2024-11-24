@@ -26,9 +26,10 @@ class StudentAdmin(admin.ModelAdmin):
 
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
-    list_display = ['programming_language', 'tutor', 'level', 'season', 'year']
-    search_fields = ['programming_language__name', 'tutor__user__username', 'level', 'season', 'year']
-    list_filter = ['level', 'season', 'year']
+    list_display = ['programming_language', 'tutor', 'level','frequency', 'season', 'year']
+    search_fields = ['programming_language__name', 'tutor__user__username', 'level','frequency', 'season', 'year']
+    list_filter = ['level', 'season', 'year','frequency']
+
 
 @admin.register(StudentSession)
 class StudentSessionAdmin(admin.ModelAdmin):
