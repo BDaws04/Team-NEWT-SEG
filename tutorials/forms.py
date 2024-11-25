@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import User
+from .models import User, Student, Tutor
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -14,16 +14,6 @@ class LogInForm(forms.Form):
         'class': 'form-control',
         'placeholder': 'Password'
     }))
-    user_type = forms.ChoiceField(
-        choices=[
-            ('student', 'Student'),
-            ('tutor', 'Tutor'),
-        ],
-        widget=forms.Select(attrs={
-            'class': 'form-select',
-        }),
-        required=True
-    )
 
 
     def get_user(self):
@@ -106,6 +96,17 @@ class PasswordForm(NewPasswordMixin):
 class SignUpForm(NewPasswordMixin, forms.ModelForm):
     """Form enabling unregistered users to sign up."""
 
+    ROLE_CHOICES = [
+        (User.Roles.STUDENT, 'Student'),
+        (User.Roles.TUTOR, 'Tutor'),
+    ]
+
+    role = forms.ChoiceField(
+        choices=ROLE_CHOICES,
+        required=True,
+        label="Select your role"
+    )
+
     class Meta:
         """Form options."""
 
@@ -116,6 +117,7 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
         """Create a new user."""
 
         super().save(commit=False)
+
         user = User.objects.create_user(
             self.cleaned_data.get('username'),
             first_name=self.cleaned_data.get('first_name'),
@@ -123,4 +125,17 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             email=self.cleaned_data.get('email'),
             password=self.cleaned_data.get('new_password'),
         )
+
+        role = self.cleaned_data.get('role')
+
+        if role == User.Roles.TUTOR:
+            tutor = Tutor(user=user)
+            tutor.save()
+        else:
+            student = Student(user=user)
+            student.save()
+        
+        user.role = role
+        user.save()
+
         return user
