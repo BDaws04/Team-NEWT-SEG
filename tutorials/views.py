@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -10,7 +11,7 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from tutorials.models import User
+from tutorials.models import Student
 
 
 @login_required
@@ -165,5 +166,16 @@ class SignUpView(LoginProhibitedMixin, FormView):
 @login_required
 def list_students(request):
     """Display all users who are students."""
-    students = User.objects.filter(role=User.Roles.STUDENT)
+    students = Student.objects.all()
     return render(request, 'list_students.html', {'students': students})
+
+@login_required
+def student_detail(request, student_id):
+    """Display the details of a specific student."""
+    try:
+        student = Student.objects.get(pk=student_id)
+    except Student.DoesNotExist:
+        raise Http404(f"Could not find student with primary key {student_id}")
+    else:
+        context = {'student': student, 'student_id': student_id}
+        return render(request, 'student_detail.html', context)
