@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Tutor, Student, Session, StudentSession, ProgrammingLanguage
+from .models import User, Tutor, Student, Session, StudentSession, ProgrammingLanguage, RequestedStudentSession
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -27,12 +27,17 @@ class StudentAdmin(admin.ModelAdmin):
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
     list_display = ['programming_language', 'tutor', 'level','frequency', 'season', 'year']
-    search_fields = ['programming_language__name', 'tutor__user__username', 'level','frequency', 'season', 'year']
+    search_fields = ['programming_language__name', 'tutor_full_name', 'level','frequency', 'season', 'year']
     list_filter = ['level', 'season', 'year','frequency']
-
 
 @admin.register(StudentSession)
 class StudentSessionAdmin(admin.ModelAdmin):
     list_display = ['student', 'session', 'registered_at']
     search_fields = ['student__user__username', 'session__programming_language__name']
     list_filter = ['registered_at']
+
+@admin.register(RequestedStudentSession)
+class RequestedStudentSession(admin.ModelAdmin):
+    list_display = ['student', 'session', 'requested_at', 'is_approved']
+    search_fields = ['student__user__username', 'session__programming_language__name']
+    list_filter = ['requested_at', 'is_approved']

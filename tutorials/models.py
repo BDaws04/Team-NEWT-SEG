@@ -105,10 +105,7 @@ class Tutor(models.Model):
 
 class Admin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
-    admin_level = models.CharField(max_length=20, choices=[
-        ('junior', 'Junior'),
-        ('senior', 'Senior'),
-    ])
+
 
     def __str__(self):
         return f'Admin: {self.user.full_name()}'
@@ -134,7 +131,7 @@ class Session(models.Model):
     ])
     season = models.CharField(
         max_length=20,
-        choices=[('Fall', 'Fall'), ('Spring', 'Spring'), ('Summer', 'Summer')],
+        choices=SEASONS,
         default='Fall',
         help_text="Select the season for the session"
     )
@@ -142,10 +139,54 @@ class Session(models.Model):
     year = models.PositiveIntegerField(help_text="Enter the year (e.g., 2024)",default=2024)
     start_time = models.DateTimeField(default=now)
     end_time = models.DateTimeField(default=default_end_time)
+    is_availble = models.BooleanField(default=True, help_text="Indicates if the session is available for registration")
+
+    def save(self, *args, **kwargs):
+        """Custom save method to validate or enforce conditions."""
+        if self.start_time >= self.end_time:
+            raise ValueError("Session start time must be earlier than end time.")
+        
+        if self.end_time < now():
+            self.is_availble = False
+        
+        super(Session, self).save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.programming_language.name} ({self.level}) - {self.season} {self.year} - {self.tutor.user.get_full_name()} - {self.frequency}'
 
+
+class RequestedStudentSession(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE,related_name='requested_sessions')
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='requests')
+    requested_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False, help_text="Indicates if the session request is approved")
+
+    def approve_request(self):
+        if self.is_approved or not self.session.is_availble():
+            return
+        
+        self.session.is_availble = False
+        self.session.save()
+        StudentSession.objects.create(student=self.student, session=self.session)
+        self.is_approved = True
+        self.save()
+
+    def save(self, *args, **kwargs):
+        """Custom save method to manage session approval logic."""
+        if self.is_approved:
+            if not self.session.is_availble:
+                raise ValueError("Cannot approve a session that is not available.")
+
+            self.session.is_availble = False
+            self.session.save()
+            StudentSession.objects.get_or_create(student=self.student, session=self.session)
+
+        super(RequestedStudentSession, self).save(*args, **kwargs)
+
+    def __str__(self):
+        status = "Approved" if self.is_approved else "Pending"
+        return f'Request by {self.student.user.get_full_name()} for {self.session} - {status}' 
+    
 class StudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='students')
@@ -154,5 +195,17 @@ class StudentSession(models.Model):
     class Meta:
         unique_together = ('student', 'session')
 
+    def save(self, *args, **kwargs):
+            """Custom save method to validate StudentSession logic."""
+            # if not self.session.is_availble:
+            #     raise ValueError("Cannot create a session for a student when the session is not available.")
+
+            self.session.is_availble = False
+            self.session.save()
+
+            super(StudentSession, self).save(*args, **kwargs)
+
     def __str__(self):
         return f'{self.student.user.get_full_name()} -> {self.session}'
+    
+    
