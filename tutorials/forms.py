@@ -16,6 +16,16 @@ class LogInForm(forms.Form):
         'class': 'form-control',
         'placeholder': 'Password'
     }))
+    user_type = forms.ChoiceField(
+        choices=[
+            ('student', 'Student'),
+            ('tutor', 'Tutor'),
+        ],
+        widget=forms.RadioSelect(attrs={
+            'class': 'form-check-input',
+        }),
+        required=True
+    )
 
     def get_user(self):
         """Authenticate user with the given credentials."""
