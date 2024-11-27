@@ -78,16 +78,21 @@ class LogInView(LoginProhibitedMixin, View):
         return self.render()
 
     def post(self, request):
-        """Handle log in attempt."""
-
         form = LogInForm(request.POST)
         self.next = request.POST.get('next') or settings.REDIRECT_URL_WHEN_LOGGED_IN
-        user = form.get_user()
-        if user is not None:
-            login(request, user)
-            return redirect(self.next)
+        if form.is_valid():
+            user = form.get_user()
+            user_type = form.cleaned_data.get('user_type')  # Get user type from radio buttons
+            if user is not None:
+                request.session['user_type'] = user_type  # Store user type in session
+                login(request, user)
+                if user_type == 'student':
+                    return redirect('/student/dashboard/')
+                elif user_type == 'tutor':
+                    return redirect('/tutor/dashboard/')
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
         return self.render()
+
 
     def render(self):
         """Render log in template with blank log in form."""

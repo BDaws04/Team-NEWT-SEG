@@ -4,8 +4,10 @@ from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
 from .models import User, Student, Tutor
 
+from django import forms
+from django.contrib.auth import authenticate
+
 class LogInForm(forms.Form):
-    """Form enabling registered users to log in."""
     username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={
         'class': 'form-control',
         'placeholder': 'Username'
@@ -15,17 +17,12 @@ class LogInForm(forms.Form):
         'placeholder': 'Password'
     }))
 
-
     def get_user(self):
-        """Returns authenticated user if possible."""
-
-        user = None
-        if self.is_valid():
-            username = self.cleaned_data.get('username')
-            password = self.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+        """Authenticate user with the given credentials."""
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+        user = authenticate(username=username, password=password)
         return user
-
 
 class UserForm(forms.ModelForm):
     """Form to update user profiles."""
