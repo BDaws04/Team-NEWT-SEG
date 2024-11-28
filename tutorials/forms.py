@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import User, Student, Tutor
+from .models import User, Tutor, Student, ProgrammingLanguage
 
 from django import forms
 from django.contrib.auth import authenticate
@@ -16,16 +16,6 @@ class LogInForm(forms.Form):
         'class': 'form-control',
         'placeholder': 'Password'
     }))
-    user_type = forms.ChoiceField(
-        choices=[
-            ('student', 'Student'),
-            ('tutor', 'Tutor'),
-        ],
-        widget=forms.RadioSelect(attrs={
-            'class': 'form-check-input',
-        }),
-        required=True
-    )
 
     def get_user(self):
         """Authenticate user with the given credentials."""
@@ -111,7 +101,15 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
     role = forms.ChoiceField(
         choices=ROLE_CHOICES,
         required=True,
-        label="Select your role"
+        label="Select your role",
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'})
+    )
+
+    expertise = forms.ModelMultipleChoiceField(
+        queryset=ProgrammingLanguage.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        label="Select programming languages you specialize in"
     )
 
     class Meta:
@@ -138,6 +136,12 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
         if role == User.Roles.TUTOR:
             tutor = Tutor(user=user)
             tutor.save()
+
+            # Assign specialties to the tutor
+            expertise = self.cleaned_data.get('expertise')
+            if expertise:
+                tutor.expertise.set(expertise)
+
         else:
             student = Student(user=user)
             student.save()

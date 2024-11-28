@@ -82,16 +82,12 @@ class LogInView(LoginProhibitedMixin, View):
         self.next = request.POST.get('next') or settings.REDIRECT_URL_WHEN_LOGGED_IN
         if form.is_valid():
             user = form.get_user()
-            user_type = form.cleaned_data.get('user_type')  # Get user type from radio buttons
             if user is not None:
-                request.session['user_type'] = user_type  # Store user type in session
                 login(request, user)
-                if user_type == 'student':
-                    return redirect('/student/dashboard/')
-                elif user_type == 'tutor':
-                    return redirect('/tutor/dashboard/')
+                return redirect(self.next)
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
         return self.render()
+
 
 
     def render(self):
@@ -167,6 +163,7 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+
     
 @login_required
 def list_students(request):
