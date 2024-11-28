@@ -171,12 +171,18 @@ class SignUpView(LoginProhibitedMixin, FormView):
 @login_required
 def list_students(request):
     """Display all users who are students."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
     students = Student.objects.all()
     return render(request, 'list_students.html', {'students': students})
 
 @login_required
 def student_detail(request, student_id):
     """Display the details of a specific student."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
     try:
         student = Student.objects.get(pk=student_id)
     except Student.DoesNotExist:
