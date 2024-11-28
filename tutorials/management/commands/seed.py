@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from tutorials.models import User, Admin, Tutor, Student, Session, StudentSession, ProgrammingLanguage
+from tutorials.models import User, Admin, Tutor, Student, Session, StudentSession, ProgrammingLanguage, RequestedStudentSession
 from faker import Faker
 from random import choice, randint
 from django.contrib.auth import get_user_model
@@ -30,7 +30,7 @@ class Command(BaseCommand):
         self.create_users()
         self.create_tutors_and_students()
         self.seed_sessions()
-        self.seed_student_sessions()
+        self.seed_req_student_sessions()
 
     def create_programming_languages(self):
         """Seed predefined programming languages."""
@@ -74,7 +74,7 @@ class Command(BaseCommand):
         print(f"{self.NUM_SESSIONS} sessions seeded.")
 
 
-    def seed_student_sessions(self):
+    def seed_req_student_sessions(self):
         """Link students to sessions."""
         students = Student.objects.all()
         sessions = Session.objects.all()
@@ -83,7 +83,7 @@ class Command(BaseCommand):
             student = choice(students)
             session = choice(sessions)
 
-            StudentSession.objects.get_or_create(student=student, session=session)
+            RequestedStudentSession.objects.get_or_create(student=student, session=session)
 
         print(f"{self.NUM_STUDENT_SESSIONS} student sessions seeded.")
 
@@ -102,7 +102,7 @@ class Command(BaseCommand):
             first_name='John',
             last_name='Doe',
         )
-        Admin.objects.create(user=admin_user, admin_level='senior')
+        Admin.objects.create(user=admin_user)
         print("Admin user created.")
 
     def create_tutor_user(self):
