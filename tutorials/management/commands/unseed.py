@@ -1,5 +1,8 @@
 from django.core.management.base import BaseCommand
-from tutorials.models import User, Tutor, Student, Session, StudentSession, ProgrammingLanguage
+from tutorials.models import (
+    User, Tutor, Student, Session, StudentSession, ProgrammingLanguage,
+    TutorSession, RequestedStudentSession
+)
 
 class Command(BaseCommand):
     """Build automation command to unseed the database."""
@@ -13,6 +16,14 @@ class Command(BaseCommand):
         # Delete related data first to avoid foreign key constraint violations
         StudentSession.objects.all().delete()
         self.stdout.write("Deleted all StudentSession entries.")
+        
+        RequestedStudentSession.objects.all().delete()
+        self.stdout.write("Deleted all RequestedStudentSession entries.")
+        
+        TutorSession.objects.all().delete()
+        self.stdout.write("Deleted all TutorSession entries.")
+        
+        ProgrammingLanguage.objects.all().delete()
         
         Session.objects.all().delete()
         self.stdout.write("Deleted all Session entries.")

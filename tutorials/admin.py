@@ -1,10 +1,18 @@
 from django.contrib import admin
-from .models import User, Tutor, Student, Session, StudentSession, ProgrammingLanguage, RequestedStudentSession
+from .models import (
+    Admin, User, Student, ProgrammingLanguage, Tutor, Session, TutorSession, RequestedStudentSession, StudentSession
+)
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff']
+    list_display = ['username', 'email', 'first_name', 'last_name']
     search_fields = ['username', 'email', 'first_name', 'last_name']
+
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ['user', 'enrollment_date']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name']
+    filter_horizontal = ['previous_sessions']
 
 @admin.register(ProgrammingLanguage)
 class ProgrammingLanguageAdmin(admin.ModelAdmin):
@@ -13,31 +21,35 @@ class ProgrammingLanguageAdmin(admin.ModelAdmin):
 
 @admin.register(Tutor)
 class TutorAdmin(admin.ModelAdmin):
-    list_display = ('user', 'expertise_list')
-    list_filter = ('expertise',)
-    search_fields = ('user__username', 'user__first_name', 'user__last_name')
-    filter_horizontal = ('expertise',)
+    list_display = ['user', 'expertise_list']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name']
+    filter_horizontal = ['expertise']
 
-@admin.register(Student)
-class StudentAdmin(admin.ModelAdmin):
-    list_display = ['user', 'enrollment_date']
-    search_fields = ['user__username', 'user__email']
-    list_filter = ['enrollment_date']
+@admin.register(Admin)
+class AdminAdmin(admin.ModelAdmin):
+    list_display = ['user']
 
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
-    list_display = ['programming_language', 'tutor', 'level','frequency', 'season', 'year']
-    search_fields = ['programming_language__name', 'tutor_full_name', 'level','frequency', 'season', 'year']
-    list_filter = ['level', 'season', 'year','frequency']
+    list_display = ['programming_language', 'level', 'season', 'year', 'frequency', 'start_day', 'end_day', 'is_available']
+    search_fields = ['programming_language__name', 'season', 'year']
+    list_filter = ['level', 'season', 'year', 'frequency', 'is_available']
+
+@admin.register(TutorSession)
+class TutorSessionAdmin(admin.ModelAdmin):
+    list_display = ['tutor', 'session', 'created_at']
+    search_fields = ['tutor__user__username', 'session__programming_language__name']
+    list_filter = ['created_at']
+
+@admin.register(RequestedStudentSession)
+class RequestedStudentSessionAdmin(admin.ModelAdmin):
+    list_display = ['student', 'session', 'is_approved', 'requested_at']
+    search_fields = ['student__user__username', 'session__programming_language__name']
+    list_filter = ['is_approved', 'requested_at']
+    filter_horizontal = ['available_tutor_sessions']
 
 @admin.register(StudentSession)
 class StudentSessionAdmin(admin.ModelAdmin):
-    list_display = ['student', 'session', 'registered_at']
-    search_fields = ['student__user__username', 'session__programming_language__name']
+    list_display = ['student', 'tutor_session', 'registered_at']
+    search_fields = ['student__user__username', 'tutor_session__session__programming_language__name']
     list_filter = ['registered_at']
-
-@admin.register(RequestedStudentSession)
-class RequestedStudentSession(admin.ModelAdmin):
-    list_display = ['student', 'session', 'requested_at', 'is_approved']
-    search_fields = ['student__user__username', 'session__programming_language__name']
-    list_filter = ['requested_at', 'is_approved']

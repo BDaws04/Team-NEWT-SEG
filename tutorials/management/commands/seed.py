@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from tutorials.models import User, Admin, Tutor, Student, Session, StudentSession, ProgrammingLanguage, RequestedStudentSession
+from tutorials.models import User, Tutor, Student, Session, StudentSession, ProgrammingLanguage, TutorSession, RequestedStudentSession
 from faker import Faker
 from random import choice, randint
 from django.contrib.auth import get_user_model
@@ -9,16 +9,15 @@ from datetime import datetime, timedelta
 from django.utils.timezone import make_aware
 
 
-class Command(BaseCommand):
-    """Database seeder for creating users, tutors, students, and courses."""
+def calculate_end_date(start_date, duration_weeks):
+        return start_date + timedelta(weeks=duration_weeks,days=4)
 
-    USER_COUNT = 300
-    NUM_SESSIONS = 100
-    NUM_STUDENT_SESSIONS = 50
-    DEFAULT_PASSWORD = 'Password123'
-    LANGUAGES = [
-        'Python', 'Java', 'C++', 'JavaScript', 'Ruby', 'PHP', 'Go', 'Swift', 'Kotlin', 'Rust'
-    ]
+class Command(BaseCommand):
+
+    TUTOR_COUNT = 5
+    STUDENT_COUNT = 5
+    SESSION_COUNT = 5
+    isPub = True
     help = 'Seeds the database with sample data'
 
     def __init__(self):
@@ -26,124 +25,35 @@ class Command(BaseCommand):
         self.User = get_user_model()  # Dynamically get the custom User model
 
     def handle(self, *args, **options):
-        self.create_programming_languages()  # Populate ProgrammingLanguage first
-        self.create_users()
+        # if(isPub):
+        self.create_programming_languages()  
         self.create_tutors_and_students()
         self.seed_sessions()
-        self.seed_req_student_sessions()
 
     def create_programming_languages(self):
-        """Seed predefined programming languages."""
-        for language in self.LANGUAGES:
-            ProgrammingLanguage.objects.get_or_create(name=language)
+        """Populate the ProgrammingLanguage model with common languages."""
+        LANGUAGES = [
+            'Python', 'Java', 'C++', 'JavaScript', 'Ruby', 'PHP', 'Go', 'Swift', 'Kotlin', 'Rust'
+            ]
+        for language in LANGUAGES:
+            ProgrammingLanguage.objects.create(name=language)
+
         print("Programming languages seeded.")
 
-    def seed_sessions(self):
-        tutors = Tutor.objects.prefetch_related("expertise").all()
-        current_year = datetime.now().year
-        available_years = [current_year, current_year + 1, current_year + 2]  # Example years
-
-        for _ in range(self.NUM_SESSIONS):
-            tutor = choice(tutors)
-
-            expertise_languages = list(tutor.expertise.all())
-            if not expertise_languages:
-                print(f"Skipping tutor {tutor.user.username} (no expertise assigned).")
-                continue
-
-            language = choice(expertise_languages)
-            print(f"Assigning programming language {language.name} to session for tutor {tutor.user.username}.")
-
-            season = choice(['Fall', 'Spring', 'Summer'])
-            year = choice(available_years)
-            frequency = choice(['Weekly', 'By Weekly'])
-            start_time = make_aware(datetime.now() + timedelta(days=randint(1, 30), hours=randint(8, 20)))
-            end_time = start_time + timedelta(hours=2)
-
-            Session.objects.create(
-                programming_language=language,
-                tutor=tutor,
-                level=choice(['beginner', 'intermediate', 'advanced']),
-                season=season,
-                year=year,
-                frequency = frequency,
-                start_time=start_time,
-                end_time=end_time,
-            )
-
-        print(f"{self.NUM_SESSIONS} sessions seeded.")
-
-
-    def seed_req_student_sessions(self):
-        """Link students to sessions."""
-        students = Student.objects.all()
-        sessions = Session.objects.all()
-
-        for _ in range(self.NUM_STUDENT_SESSIONS):
-            student = choice(students)
-            session = choice(sessions)
-
-            RequestedStudentSession.objects.get_or_create(student=student, session=session)
-
-        print(f"{self.NUM_STUDENT_SESSIONS} student sessions seeded.")
-
-    def create_users(self):
-        """Create specific user roles."""
-        self.create_admin_user()
-        self.create_tutor_user()
-        self.create_student_user()
-
-    def create_admin_user(self):
-        """Create an admin user."""
-        admin_user = self.User.objects.create_superuser(
-            username='@johndoe',
-            email='john.doe@example.org',
-            password='Password123',
-            first_name='John',
-            last_name='Doe',
-        )
-        Admin.objects.create(user=admin_user)
-        print("Admin user created.")
-
-    def create_tutor_user(self):
-        user = self.User.objects.create_user(
-            username='@' + self.faker.unique.user_name(),
-            email=self.faker.unique.email(),
-            password='Password123',
-            first_name=self.faker.first_name(),
-            last_name=self.faker.last_name(),
-        )
-        tutor = Tutor.objects.create(
-            user=user,
-        )
-        languages = ProgrammingLanguage.objects.order_by('?')[:randint(1, 4)]
-        if not languages:
-            print(f"No programming languages available to assign to tutor {user.username}.")
-        else:
-            tutor.expertise.add(*languages)
-
-    def create_student_user(self):
-        """Create a student user."""
-        student_user = self.User.objects.create_user(
-            username='@charlie',
-            email='charlie.johnson@example.org',
-            password='Password123',
-            first_name='Charlie',
-            last_name='Johnson',
-        )
-        student = Student.objects.create(user=student_user)
-        print("Student user created.")
-
     def create_tutors_and_students(self):
-        """Generate random tutors and students."""
-        print("Seeding random users...")
-        for _ in range(self.USER_COUNT // 2):
+        """Create 5 tutors and 5 students with random data."""
+        print("Seeding tutors and students...")
+
+        # Create 5 tutors
+        for _ in range(self.TUTOR_COUNT):
             self.create_random_tutor()
 
-        for _ in range(self.USER_COUNT // 2):
+        # Create 5 students
+        for _ in range(self.STUDENT_COUNT):
             self.create_random_student()
 
     def create_random_tutor(self):
+        """Create a random tutor with expertise in programming languages."""
         user = self.User.objects.create_user(
             username='@' + self.faker.unique.user_name(),
             email=self.faker.unique.email(),
@@ -151,19 +61,16 @@ class Command(BaseCommand):
             first_name=self.faker.first_name(),
             last_name=self.faker.last_name(),
         )
-        tutor = Tutor.objects.create(
-            user=user,
-        )
+        tutor = Tutor.objects.create(user=user)
 
-        # Assign random programming languages
+        # Assign random programming languages to the tutor
         languages = ProgrammingLanguage.objects.order_by('?')[:randint(1, 4)]
-        if not languages:
-            print(f"No programming languages available to assign to tutor {user.username}.")
-        else:
+        if languages:
             tutor.expertise.add(*languages)
             print(f"Tutor {user.username} assigned expertise: {[lang.name for lang in languages]}")
 
     def create_random_student(self):
+        """Create a random student."""
         user = self.User.objects.create_user(
             username='@' + self.faker.unique.user_name(),
             email=self.faker.unique.email(),
@@ -172,9 +79,57 @@ class Command(BaseCommand):
             last_name=self.faker.last_name(),
         )
         Student.objects.create(user=user)
+        print(f"Student {user.username} created.")
 
     
+    def seed_sessions(self):
+        """Create sessions with accurate start and end dates based on term start dates."""
+        languages = ProgrammingLanguage.objects.all()
 
+        # Updated TERM_START_DATES with Summer starting in May
+        TERM_START_DATES = {
+            2024: {
+                'Fall': datetime(2024, 9, 16),
+                'Spring': datetime(2024, 1, 8),
+                'Summer': datetime(2024, 5, 6),  # Adjusted to start in May
+            },
+            2025: {
+                'Fall': datetime(2025, 9, 15),
+                'Spring': datetime(2025, 1, 6),
+                'Summer': datetime(2025, 5, 5),  # Adjusted to start in May
+            },
+            2026: {
+                'Fall': datetime(2026, 9, 14),
+                'Spring': datetime(2026, 1, 5),
+                'Summer': datetime(2026, 5, 4),  # Adjusted to start in May
+            },
+        }
 
-        
+        for _ in range(self.SESSION_COUNT):
+            language = choice(languages)
+            season = choice(['Fall', 'Spring', 'Summer'])
+            year = choice(list(TERM_START_DATES.keys()))
+            frequency = choice(['Weekly', 'By Weekly'])
+
+            if year not in TERM_START_DATES or season not in TERM_START_DATES[year]:
+                print(f"Skipping invalid term configuration for year {year} and season {season}.")
+                continue
+
+            start_day = TERM_START_DATES[year][season]
+            duration_weeks = 12 if season == 'Fall' else (11 if season == 'Spring' else 6)  # Adjusted durations
+            end_day = calculate_end_date(start_day, duration_weeks)
+
+            session = Session.objects.create(
+                programming_language=language,
+                level=choice(['beginner', 'intermediate', 'advanced']),
+                season=season,
+                year=year,
+                frequency=frequency,
+                start_day=start_day,
+                end_day=end_day,
+                is_available=True
+            )
+
+            print(f"Created session for {language.name}, level {session.level}, "
+                f"from {start_day} to {end_day}.")
 
