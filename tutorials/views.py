@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -10,6 +11,7 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
+from tutorials.models import Student
 
 
 @login_required
@@ -17,7 +19,16 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    return render(request, 'dashboard.html', {'user': current_user})
+    print(current_user.role)
+
+    if current_user.role == 'STUDENT':
+        return render(request, 'student_dashboard.html', {'user': current_user})
+    elif current_user.role == 'TUTOR':
+        return render(request, 'tutor_dashboard.html', {'user': current_user})
+    elif current_user.role == 'ADMIN':
+        return render(request, 'admin_dashboard.html', {'user': current_user})
+    else:
+        return render(request, 'dashboard.html', {'user': current_user})
 
 
 @login_prohibited
@@ -67,16 +78,17 @@ class LogInView(LoginProhibitedMixin, View):
         return self.render()
 
     def post(self, request):
-        """Handle log in attempt."""
-
         form = LogInForm(request.POST)
         self.next = request.POST.get('next') or settings.REDIRECT_URL_WHEN_LOGGED_IN
-        user = form.get_user()
-        if user is not None:
-            login(request, user)
-            return redirect(self.next)
+        if form.is_valid():
+            user = form.get_user()
+            if user is not None:
+                login(request, user)
+                return redirect(self.next)
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
         return self.render()
+
+
 
     def render(self):
         """Render log in template with blank log in form."""
@@ -151,3 +163,27 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+
+    
+@login_required
+def list_students(request):
+    """Display all users who are students."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    students = Student.objects.all()
+    return render(request, 'list_students.html', {'students': students})
+
+@login_required
+def student_detail(request, student_id):
+    """Display the details of a specific student."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    try:
+        student = Student.objects.get(pk=student_id)
+    except Student.DoesNotExist:
+        raise Http404(f"Could not find student with primary key {student_id}")
+    else:
+        context = {'student': student, 'student_id': student_id}
+        return render(request, 'student_detail.html', context)

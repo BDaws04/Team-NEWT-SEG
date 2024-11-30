@@ -1,23 +1,41 @@
 {% extends 'base.html' %}
+
+{% block body_class %}main-page{% endblock %}
+
 {% block body %}
-  <div class="container vh-100">
-    <div class="row h-100">
-      <div class="col-12 my-auto">
-        <div class="card cover-card offset-sm-2 offset-md-4 offset-lg-7">
-          <h1 class="cover-heading">Task Manager</h1>
-          <p class="cover-text">A task manager application by Team <i>Insert team name here (or revise this home screen as you see fit)</i></p>
-          <p>
-            <a href='{% url 'sign_up' %}' class="btn btn-lg btn-secondary">
-              Sign up
-            </a>
-          </p>
-          <p>
-            <a href='{% url 'log_in' %}' class="btn btn-lg btn-secondary">
-              Log in
-            </a>
-          </p>
+<div class="container-fluid vh-100 d-flex justify-content-center align-items-center">
+  <body class="main-page">
+  <div class="row w-100">
+    <div class="col-md-12 text-center">
+      <!-- Central Rectangle -->
+      <div class="custom-banner mx-auto shadow-lg p-4 d-flex flex-column justify-content-center align-items-center">
+        <!-- App Title -->
+        <h1 class="cover-heading" style="color: #25593e;">
+          Code Tutors
+        </h1>
+
+        <!-- Tagline -->
+        <p class="cover-text text-muted mb-4">
+          Managing students made easy! <br>
+          Built by <i>Team Newt</i>
+        </p>
+
+        <!-- Signup Button -->
+        <a href='{% url "sign_up" %}' class="btn btn-lg btn-signup w-50 mb-2">
+          <i class="bi bi-person-plus"></i> Sign Up
+        </a>
+
+        <!-- Seperator -->
+        <div class="separator">
+          <span> ----------------- or -----------------</span>
         </div>
+
+        <!-- Login Button -->
+        <a href='{% url "log_in" %}' class="btn btn-lg btn-login w-50">
+          <i class="bi bi-box-arrow-in-right"></i> Log In
+        </a>
       </div>
     </div>
   </div>
+</div>
 {% endblock %}

@@ -2,24 +2,27 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import User
+from .models import User, Tutor, Student, ProgrammingLanguage
+
+from django import forms
+from django.contrib.auth import authenticate
 
 class LogInForm(forms.Form):
-    """Form enabling registered users to log in."""
-
-    username = forms.CharField(label="Username")
-    password = forms.CharField(label="Password", widget=forms.PasswordInput())
+    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Username'
+    }))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Password'
+    }))
 
     def get_user(self):
-        """Returns authenticated user if possible."""
-
-        user = None
-        if self.is_valid():
-            username = self.cleaned_data.get('username')
-            password = self.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+        """Authenticate user with the given credentials."""
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+        user = authenticate(username=username, password=password)
         return user
-
 
 class UserForm(forms.ModelForm):
     """Form to update user profiles."""
@@ -90,6 +93,25 @@ class PasswordForm(NewPasswordMixin):
 class SignUpForm(NewPasswordMixin, forms.ModelForm):
     """Form enabling unregistered users to sign up."""
 
+    ROLE_CHOICES = [
+        (User.Roles.STUDENT, 'Student'),
+        (User.Roles.TUTOR, 'Tutor'),
+    ]
+
+    role = forms.ChoiceField(
+        choices=ROLE_CHOICES,
+        required=True,
+        label="Select your role",
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'})
+    )
+
+    expertise = forms.ModelMultipleChoiceField(
+        queryset=ProgrammingLanguage.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        label="Select programming languages you specialize in"
+    )
+
     class Meta:
         """Form options."""
 
@@ -100,6 +122,7 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
         """Create a new user."""
 
         super().save(commit=False)
+
         user = User.objects.create_user(
             self.cleaned_data.get('username'),
             first_name=self.cleaned_data.get('first_name'),
@@ -107,4 +130,23 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
             email=self.cleaned_data.get('email'),
             password=self.cleaned_data.get('new_password'),
         )
+
+        role = self.cleaned_data.get('role')
+
+        if role == User.Roles.TUTOR:
+            tutor = Tutor(user=user)
+            tutor.save()
+
+            # Assign specialties to the tutor
+            expertise = self.cleaned_data.get('expertise')
+            if expertise:
+                tutor.expertise.set(expertise)
+
+        else:
+            student = Student(user=user)
+            student.save()
+        
+        user.role = role
+        user.save()
+
         return user

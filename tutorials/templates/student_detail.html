@@ -1,0 +1,17 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="profile-card">
+    <div class="profile-image">
+        <img src="{{ student.user.gravatar }}" alt="Gravatar of {{ student.user.username }}" />
+    </div>
+    <div class="profile-details">
+        <h1>{{ student.user.full_name }}</h1>
+        <p><strong>Username:</strong> {{ student.user.username }}</p>
+        <p><strong>Email:</strong> {{ student.user.email }}</p>
+    </div>
+
+    <div class="back-button">
+        <a href="{% url 'list_students' %}" class="btn btn-secondary">Back to Student List</a>
+    </div>
+</div>
+{% endblock %}
