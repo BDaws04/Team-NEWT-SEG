@@ -1,90 +1,15 @@
 {% extends 'base_content.html' %}
 {% block content %}
 <div class="container">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h1 class="text-center">Sign up</h1>
+  <div class="row">
+    <div class="col-12">
+      <h1>Sign up</h1>
       <form action="{% url 'sign_up' %}" method="post">
         {% csrf_token %}
-        
-        <!-- First Name Field -->
-        <div class="mb-3">
-          {{ form.first_name.label_tag }}
-          {{ form.first_name }}
-        </div>
-        
-        <!-- Last Name Field -->
-        <div class="mb-3">
-          {{ form.last_name.label_tag }}
-          {{ form.last_name }}
-        </div>
-
-        <!-- Username Field -->
-        <div class="mb-3">
-          {{ form.username.label_tag }}
-          {{ form.username }}
-        </div>
-
-        <!-- Email Field -->
-        <div class="mb-3">
-          {{ form.email.label_tag }}
-          {{ form.email }}
-        </div>
-
-        <!-- Password Fields -->
-        <div class="mb-3">
-          {{ form.new_password.label_tag }}
-          {{ form.new_password }}
-        </div>
-        <div class="mb-3">
-          {{ form.password_confirmation.label_tag }}
-          {{ form.password_confirmation }}
-        </div>
-
-        <!-- Role Selection -->
-        <fieldset class="mb-4">
-          <legend>Select your role</legend>
-          {% for radio in form.role %}
-          <div class="form-check">
-            {{ radio.tag }}
-            <label class="form-check-label">{{ radio.choice_label }}</label>
-          </div>
-          {% endfor %}
-        </fieldset>
-
-        <!-- Programming Languages (Tutor Only) -->
-        <div id="expertise-section" class="mb-4" style="display: none;">
-          <h4>Select programming languages you specialize in</h4>
-          {% for checkbox in form.expertise %}
-          <div class="form-check">
-            {{ checkbox.tag }}
-            <label class="form-check-label">{{ checkbox.choice_label }}</label>
-          </div>
-          {% endfor %}
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-100">Sign up</button>
+        {% include 'partials/bootstrap_form.html' with form=form %}
+        <input type="submit" value="Sign up" class="btn btn-primary">
       </form>
     </div>
   </div>
 </div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const roleRadios = document.querySelectorAll('input[name="role"]');
-    const expertiseSection = document.getElementById('expertise-section');
-
-    // Show or hide programming languages based on the selected role
-    roleRadios.forEach(radio => {
-      radio.addEventListener('change', function () {
-        if (this.value === 'TUTOR') {
-          expertiseSection.style.display = 'block';
-        } else {
-          expertiseSection.style.display = 'none';
-        }
-      });
-    });
-  });
-</script>
 {% endblock %}

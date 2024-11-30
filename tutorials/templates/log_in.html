@@ -1,43 +1,14 @@
-{% extends 'base.html' %}
-
-{% block title %}Log In{% endblock %}
-
-{% block body %}
-<div class="container mt-5">
-  <h1 class="text-center">Log in</h1>
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <form method="post">
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12 col-md-6 offset-md-3">
+      <h1>Log in</h1>
+      <form action="{% url 'log_in' %}" method="post">
         {% csrf_token %}
-        <!-- Username Input -->
-        <div class="mb-3">
-          {{ form.username.label_tag }}
-          {{ form.username }}
-        </div>
-
-        <!-- Password Input -->
-        <div class="mb-3">
-          {{ form.password.label_tag }}
-          {{ form.password }}
-        </div>
-        
-        
-        <!-- Radio Buttons for User Type
-        <div class="mb-3">
-          <label class="form-label">Are you a:</label>
-          <div class="form-check">
-            <input type="radio" class="form-check-input" id="student" name="user_type" value="student" required>
-            <label class="form-check-label" for="student">Student</label>
-          </div>
-          <div class="form-check">
-            <input type="radio" class="form-check-input" id="tutor" name="user_type" value="tutor" required>
-            <label class="form-check-label" for="tutor">Tutor</label>
-          </div>
-        </div>
-      -->
-        
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-100">Log in</button>
+        <input type="hidden" name="next" value="{{ next }}">
+        {% include 'partials/bootstrap_form.html' with form=form %}
+        <input type="submit" value="Log in" class="btn btn-primary">
       </form>
     </div>
   </div>
