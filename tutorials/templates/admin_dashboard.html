@@ -5,6 +5,25 @@
     <div class="col-12">
       <h1>Welcome to your dashboard {{ user.username }}</h1>
       <h1> You are an admin </h1>
+
+      <div id="student-list-container">>
+        <!-- Student list will load here.-->
+      </div>
+    
+      <script>
+        window.onload = function() {
+            fetch('/list_students/')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('student-list-container').innerHTML = data;
+                })
+                .catch(error => {
+                    console.error('Error loading student list:', error);
+                });
+        };
+      </script>
+
+
     </div>
   </div>
 </div>

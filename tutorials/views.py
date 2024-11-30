@@ -12,7 +12,8 @@ from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
 from tutorials.models import Student
-
+from django.shortcuts import redirect
+from django.http import HttpResponseForbidden
 
 @login_required
 def dashboard(request):
