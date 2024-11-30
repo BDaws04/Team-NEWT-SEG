@@ -1,4 +1,4 @@
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -198,3 +198,15 @@ def student_detail(request, student_id):
     else:
         context = {'student': student, 'student_id': student_id}
         return render(request, 'student_detail.html', context)
+
+@login_required
+def delete_student(request, student_id):
+    try:
+        student = Student.objects.get(pk=student_id)
+    except Student.DoesNotExist:
+        raise Http404(f"Count not find student with primary key {student_id}")
+    else:
+        if request.method == "POST":
+            student.delete()
+            path = reverse('list_students')
+            return HttpResponseRedirect(path)

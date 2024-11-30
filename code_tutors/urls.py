@@ -31,7 +31,7 @@ urlpatterns = [
     path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
     path('list_students/', views.list_students, name='list_students'),
     path('list_students_no_navbar/', views.list_students_no_navbar, name='list_students_no_navbar'),
-    path('list_students/student/<int:student_id>', views.student_detail, name='student_detail')
-
+    path('list_students/student/<int:student_id>/', views.student_detail, name='student_detail'),
+    path('list_students/student/<int:student_id>/delete_student/', views.delete_student, name='delete_student')
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
