@@ -11,7 +11,7 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from tutorials.models import Student
+from tutorials.models import Student, Tutor
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
 
@@ -201,6 +201,7 @@ def student_detail(request, student_id):
 
 @login_required
 def delete_student(request, student_id):
+    """Delete the records of a specific student."""
     try:
         student = Student.objects.get(pk=student_id)
     except Student.DoesNotExist:
@@ -209,4 +210,40 @@ def delete_student(request, student_id):
         if request.method == "POST":
             student.delete()
             path = reverse('list_students')
+            return HttpResponseRedirect(path)
+        
+@login_required
+def list_tutors(request):
+    """Display all users who are tutors."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    tutors = Tutor.objects.all()
+    return render(request, 'list_tutors.html', {'tutors': tutors})
+
+@login_required
+def tutor_detail(request, tutor_id):
+    """Display the details of a specific tutor."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    try:
+        tutor = Tutor.objects.get(pk=tutor_id)
+    except Tutor.DoesNotExist:
+        raise Http404(f"Count not find tutor with primary key {tutor_id}")
+    else:
+        context = {'tutor': tutor, 'tutor_id': tutor_id}
+        return render(request, 'tutor_detail.html', context)
+    
+@login_required
+def delete_tutor(request, tutor_id):
+    """Delete the records of a specific tutor."""
+    try:
+        tutor = Tutor.objects.get(pk=tutor_id)
+    except Student.DoesNotExist:
+        raise Http404(f"Count not find student with primary key {tutor_id}")
+    else:
+        if request.method == "POST":
+            tutor.delete()
+            path = reverse('list_tutors')
             return HttpResponseRedirect(path)

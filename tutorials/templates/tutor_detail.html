@@ -1,0 +1,45 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="profile-card">
+    <div class="profile-image">
+        <img src="{{ tutor.user.gravatar }}" alt="Gravatar of {{ tutor.user.username }}" />
+    </div>
+    <div class="profile-details">
+        <h1>{{ tutor.user.full_name }}</h1>
+        <p><strong>Username:</strong> {{ tutor.user.username }}</p>
+        <p><strong>Email:</strong> {{ tutor.user.email }}</p>
+    </div>
+
+    <div class="back-button">
+        <a href="{% url 'list_tutors' %}" class="btn btn-secondary">Back to Tutor List</a>
+    </div>
+
+    <div class="delete-button">
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            Delete Tutor
+        </button>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this tutor?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'delete_tutor' tutor.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Tutor</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

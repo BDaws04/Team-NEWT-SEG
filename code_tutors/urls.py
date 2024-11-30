@@ -32,6 +32,9 @@ urlpatterns = [
     path('list_students/', views.list_students, name='list_students'),
     path('list_students_no_navbar/', views.list_students_no_navbar, name='list_students_no_navbar'),
     path('list_students/student/<int:student_id>/', views.student_detail, name='student_detail'),
-    path('list_students/student/<int:student_id>/delete_student/', views.delete_student, name='delete_student')
+    path('list_students/student/<int:student_id>/delete_student/', views.delete_student, name='delete_student'),
+    path('list_tutors/', views.list_tutors, name='list_tutors'),
+    path('list_tutors/tutor/<int:tutor_id>/', views.tutor_detail, name='tutor_detail'),
+    path('list_tutors/tutor/<int:tutor_id>/delete_tutor/', views.delete_tutor, name='delete_tutor')
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
