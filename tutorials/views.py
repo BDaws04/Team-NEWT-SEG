@@ -19,6 +19,7 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
+    print(current_user)
     print(current_user.role)
 
     if current_user.role == 'STUDENT':

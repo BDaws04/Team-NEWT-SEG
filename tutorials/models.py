@@ -33,7 +33,7 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=10,
         choices=Roles.choices,
-        default=Roles.ADMIN,
+        default=Roles.STUDENT,
         blank=False
     )
 
@@ -44,11 +44,6 @@ class User(AbstractUser):
     def full_name(self):
         """Return a string containing the user's full name."""
         return f'{self.first_name} {self.last_name}'
-    
-    def role(self):
-        """Return a string containing the user's role."""
-
-        return self.role
 
     def gravatar(self, size=120):
         """Return a URL to the user's gravatar."""
