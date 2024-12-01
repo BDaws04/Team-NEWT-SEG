@@ -202,6 +202,9 @@ def student_detail(request, student_id):
 @login_required
 def delete_student(request, student_id):
     """Delete the records of a specific student."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
     try:
         student = Student.objects.get(pk=student_id)
     except Student.DoesNotExist:
