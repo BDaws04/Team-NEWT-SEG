@@ -1,0 +1,21 @@
+{% extends 'base_content.html' %} 
+
+{% block content %}
+<div class="container">
+  <div class="cover-card">
+    <h1 class="cover-heading">Session Details</h1>
+    <p><strong>Programming Language:</strong> {{ session.session.programming_language.name }}</p>
+    <p><strong>Level:</strong> {{ session.session.level }}</p>
+    <p><strong>Season:</strong> {{ session.session.season }} {{ session.session.year }}</p>
+    <p><strong>Frequency:</strong> {{ session.session.frequency }}</p>
+    <p><strong>Start Date:</strong> {{ session.session.start_day }}</p>
+    <p><strong>End Date:</strong> {{ session.session.end_day }}</p>
+    <p><strong>Tutor:</strong> {{ session.tutor.user.full_name }}</p>
+    <p><strong>Notes:</strong> {{ session.notes }}</p>
+    
+    <div class="mt-4">
+      <a href="{% url 'tutor_sessions_list' %}" class="btn btn-primary">Back to Tutor Sessions</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

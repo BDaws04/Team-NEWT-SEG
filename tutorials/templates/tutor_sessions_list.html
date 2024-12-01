@@ -1,0 +1,37 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container h-100 vcenter-item">
+  <div class="cover-card">
+    <h1 class="cover-heading">Tutors and Sessions</h1>
+    <p class="cover-text">List of all registered tutors and their sessions:</p>
+
+    <ul class="list-group">
+      {% for tutor in tutors %}
+      {% if tutor.tutor_sessions.exists %} <!-- Only display tutors with sessions -->
+      <li class="list-group-item">
+        <h2 class="profile-title">
+          Tutor: <strong>{{ tutor.user.full_name }}</strong>
+        </h2>
+        <p class="low-key">Email: {{ tutor.user.email }}</p>
+
+        <ul class="nested-list">
+          {% for tutor_session in tutor.tutor_sessions.all %}
+          <li>
+            <a href="{% url 'tutor_session_detail' tutor_session.id %}">
+              {{ tutor_session.session.programming_language.name }} - {{ tutor_session.session.level }}
+            </a>
+            ({{ tutor_session.session.season }} {{ tutor_session.session.year }})
+          </li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+
+    {% if not tutors %}
+    <p class="low-key">No tutors found.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

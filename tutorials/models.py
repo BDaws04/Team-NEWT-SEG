@@ -6,6 +6,9 @@ from django.utils.timezone import now
 from datetime import datetime, timedelta
 from django.core.validators import MinValueValidator
 from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
+from django.db import models
+from django.core.validators import MinValueValidator
 
 def calculate_end_date(start_date, duration_weeks):
     return start_date + timedelta(weeks=duration_weeks,days=4)
@@ -122,10 +125,6 @@ class Admin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
     def __str__(self):
         return f'Admin: {self.user.full_name()}'
-
-from datetime import datetime, timedelta
-from django.db import models
-from django.core.validators import MinValueValidator
 
 
 def calculate_end_date(start_date, duration_weeks):

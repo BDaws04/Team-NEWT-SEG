@@ -11,9 +11,11 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from tutorials.models import Student, Tutor
+from tutorials.models import Student, Tutor, TutorSession
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
+from django.shortcuts import get_object_or_404
+
 
 @login_required
 def dashboard(request):
@@ -250,3 +252,13 @@ def delete_tutor(request, tutor_id):
             tutor.delete()
             path = reverse('list_tutors')
             return HttpResponseRedirect(path)
+
+@login_required
+def tutor_sessions_list(request):
+    tutors = Tutor.objects.filter(tutor_sessions__isnull=False).distinct()  # Only include tutors with sessions
+    return render(request, 'tutor_sessions_list.html', {'tutors': tutors})
+
+@login_required
+def tutor_session_detail(request, pk):
+    tutor_session = get_object_or_404(TutorSession, id=pk)  # Use `pk` instead of `session_id`
+    return render(request, 'tutor_session_detail.html', {'session': tutor_session})
