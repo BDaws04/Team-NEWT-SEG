@@ -243,6 +243,9 @@ def tutor_detail(request, tutor_id):
 @login_required
 def delete_tutor(request, tutor_id):
     """Delete the records of a specific tutor."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
     try:
         tutor = Tutor.objects.get(pk=tutor_id)
     except Student.DoesNotExist:
