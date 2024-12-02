@@ -183,7 +183,7 @@ class Session(models.Model):
     )
     frequency = models.CharField(
         max_length=20,
-        choices=[('Weekly', 'Weekly'), ('By Weekly', 'By Weekly')],
+        choices=[('Weekly', 'Weekly'), ('Bi-Weekly', 'Bi-Weekly')],
         default='Weekly'
     )
     duration_hours = models.PositiveIntegerField(
@@ -318,7 +318,7 @@ class StudentSession(models.Model):
         default='Fall',
         help_text="Select the season for the session"
     )
-    frequency = models.CharField(max_length=20, choices=[('Weekly','Weekly'),('By Weekly','By Weekly')], default='Weekly')
+    frequency = models.CharField(max_length=20, choices=[('Weekly','Weekly'),('Bi-Weekly','Bi-Weekly')], default='Weekly')
     year = models.PositiveIntegerField(help_text="Enter the year (e.g., 2024)",default=2024)
     start_time = models.DateTimeField(default=now)
     end_time = models.DateTimeField(default=default_end_time)

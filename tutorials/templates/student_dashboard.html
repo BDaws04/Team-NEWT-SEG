@@ -1,12 +1,25 @@
 {% extends 'base_content.html' %}
+
 {% block content %}
 <div class="container">
   <div class="row">
     <div class="col-12">
       <h1>Welcome to your dashboard, {{ user.username }}</h1>
       <h2>You are a student</h2>
-      
+
+      {% if form %}
+        <h3>Create a new session</h3>
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      {% else %}
+        <p>{{ message }}</p>  <!-- Display success message -->
+      {% endif %}
+
     </div>
   </div>
 </div>
 {% endblock %}
+

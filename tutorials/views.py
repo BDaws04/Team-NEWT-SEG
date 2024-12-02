@@ -17,6 +17,8 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from .helpers import get_user_counts
 from django.contrib.auth import get_user_model
+from tutorials.forms import StudentSessionForm
+from tutorials.models import ProgrammingLanguage
 
 User = get_user_model()
 
@@ -29,7 +31,20 @@ def dashboard(request):
     context = {'user': current_user}
 
     if current_user.role == 'STUDENT':
+
+        form = StudentSessionForm()
+
+        if request.method == 'POST':
+            form = StudentSessionForm(request.POST)
+            if form.is_valid():
+                form.save()
+                context['message'] = 'Session request has been received!'
+                form = None
+
+        context['form'] = form
+
         return render(request, 'student_dashboard.html',context)
+    
     elif current_user.role == 'TUTOR':
         return render(request, 'tutor_dashboard.html',context)
     elif current_user.role == 'ADMIN':

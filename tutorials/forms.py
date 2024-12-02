@@ -2,10 +2,70 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from .models import User, Tutor, Student, ProgrammingLanguage
+from .models import User, Tutor, Student, ProgrammingLanguage, Session
 
 from django import forms
 from django.contrib.auth import authenticate
+
+class StudentSessionForm(forms.ModelForm):
+    class Meta:
+        model = Session
+        fields = [
+            'programming_language',
+            'level',
+            'season',
+            'year',
+            'frequency',
+            'duration_hours',
+        ]
+
+    programming_language = forms.ModelChoiceField(
+        queryset=ProgrammingLanguage.objects.all(),
+        required=True,
+        label="Select the programming language",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    level = forms.ChoiceField(
+        choices=[('beginner', 'Beginner'), ('intermediate', 'Intermediate'), ('advanced', 'Advanced')],
+        required=True,
+        label="Select the level",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    season = forms.ChoiceField(
+        choices=Session.SEASONS,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    year = forms.ChoiceField(
+        choices=[(2024, '2024'), (2025, '2025'), (2026, '2026')],
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    frequency = forms.ChoiceField(
+        choices=[('Weekly', 'Weekly'), ('Bi-Weekly', 'Bi-Weekly')],
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    duration_hours = forms.ChoiceField(
+        choices=[(1, '1 Hour'), (2, '2 Hours')],
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['programming_language'].label = 'Programming Language'
+        self.fields['level'].label = 'Level of Expertise'
+        self.fields['season'].label = 'Season'
+        self.fields['year'].label = 'Year'
+        self.fields['frequency'].label = 'Session Frequency'
+        self.fields['duration_hours'].label = 'Duration (Hours)'
+
 
 class LogInForm(forms.Form):
     username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={
