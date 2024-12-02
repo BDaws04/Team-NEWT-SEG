@@ -15,24 +15,30 @@ from tutorials.models import Student, Tutor, TutorSession
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
+from .helpers import get_user_counts
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 @login_required
 def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    print(current_user)
-    print(current_user.role)
+    
+    context = {'user': current_user}
 
     if current_user.role == 'STUDENT':
-        return render(request, 'student_dashboard.html', {'user': current_user})
+        return render(request, 'student_dashboard.html',context)
     elif current_user.role == 'TUTOR':
-        return render(request, 'tutor_dashboard.html', {'user': current_user})
+        return render(request, 'tutor_dashboard.html',context)
     elif current_user.role == 'ADMIN':
-        return render(request, 'admin_dashboard.html', {'user': current_user})
+        user_counts = get_user_counts()
+        context.update(user_counts)
+        print(context)
+        return render(request, 'admin_dashboard.html',context)
     else:
-        return render(request, 'dashboard.html', {'user': current_user})
+        return render(request, 'dashboard.html',context)
 
 
 @login_prohibited

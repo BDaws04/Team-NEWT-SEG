@@ -3,13 +3,23 @@
 <div class="container">
   <div class="row">
     <div class="col-12">
-      <h1>Welcome to your dashboard {{ user.username }}</h1>
-      <h1> You are an admin </h1>
+      <h1>Welcome to your dashboard, {{ user.username }}</h1>
+      <h1>You are an admin</h1>
 
-      <div id="student-list-container">>
-        <!-- Student list will load here.-->
+      <!-- Display user counts -->
+      <div class="stats">
+        <h3>User Statistics</h3>
+        <ul>
+          <li>Total Users: {{ total_users }}</li>
+          <li>Students: {{ student_count }}</li>
+          <li>Tutors: {{ tutor_count }}</li>
+        </ul>
       </div>
-    
+
+      <div id="student-list-container">
+        <!-- Student list will load here -->
+      </div>
+      
       <script>
         window.onload = function() {
             fetch('/list_students_no_navbar/')
@@ -22,8 +32,6 @@
                 });
         };
       </script>
-
-
     </div>
   </div>
 </div>
