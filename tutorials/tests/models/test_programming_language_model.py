@@ -11,7 +11,7 @@ class ProgrammingLanguageModelTestCase(TestCase):
     def test_valid_programming_language(self):
         self._assert_programming_language_is_valid()
 
-    def test_programming_language_may_be_blank(self):
+    def test_programming_language_may_not_be_blank(self):
         self.programming_language.name = ''
         self._assert_programming_language_is_invalid()
 

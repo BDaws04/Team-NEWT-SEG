@@ -71,7 +71,7 @@ class Student(models.Model):
         super(Student, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'Student: {self.user.get_full_name()}'
+        return f'Student: {self.user.full_name()}'
 
 
 class ProgrammingLanguage(models.Model):
@@ -119,7 +119,7 @@ class Tutor(models.Model):
     expertise_list.short_description = 'Expertise'
 
     def __str__(self):
-        return f'Tutor: {self.user.username}'
+        return f'Tutor: {self.user.full_name()}'
 
 class Admin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
