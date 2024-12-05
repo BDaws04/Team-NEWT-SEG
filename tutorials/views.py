@@ -18,8 +18,9 @@ from django.shortcuts import get_object_or_404
 from .helpers import get_user_counts
 from django.contrib.auth import get_user_model
 from tutorials.forms import StudentSessionForm
-from tutorials.models import ProgrammingLanguage
+from tutorials.models import ProgrammingLanguage, RequestedStudentSession
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -28,7 +29,6 @@ def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    
     context = {'user': current_user}
 
     if current_user.role == 'STUDENT':
@@ -38,23 +38,48 @@ def dashboard(request):
         if request.method == 'POST':
             form = StudentSessionForm(request.POST)
             if form.is_valid():
-                form.save()
-                context['message'] = 'Session request has been received!'
-                form = None
+                # Save the session object
+                session = form.save()
 
+                # Get the related student profile
+                student = current_user.student_profile
+
+                print(f"Student: {student}")
+
+                # Create the RequestedStudentSession instance
+                requested_session = RequestedStudentSession(
+                    student=student,
+                    session=session,
+                )
+
+                try:
+                     requested_session.full_clean()  # Validate the model
+                     requested_session.save()  # Save the object
+                     print(f"Requested session saved with ID: {requested_session.id}")
+                except ValidationError as e:
+                    print(f"Validation error: {e}")
+                except Exception as e:
+                    print(f"Error saving requested session: {e}")
+
+                context['message'] = 'Session request has been received!'
+                form = None  # Remove the form after successful submission
+            else:
+                context['message'] = 'There was an error with your submission.'
+
+        # Ensure form is always in the context, either for initial render or after errors
         context['form'] = form
 
-        return render(request, 'student_dashboard.html',context)
-    
+        return render(request, 'student_dashboard.html', context)
+
     elif current_user.role == 'TUTOR':
-        return render(request, 'tutor_dashboard.html',context)
+        return render(request, 'tutor_dashboard.html', context)
+
     elif current_user.role == 'ADMIN':
-        user_counts = get_user_counts()
-        context.update(user_counts)
-        print(context)
-        return render(request, 'admin_dashboard.html',context)
+        return render(request, 'admin_dashboard.html', context)
+
     else:
-        return render(request, 'dashboard.html',context)
+        return render(request, 'dashboard.html', context)
+
 
 
 @login_prohibited

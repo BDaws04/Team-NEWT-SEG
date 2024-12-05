@@ -265,13 +265,21 @@ class RequestedStudentSession(models.Model):
     def save(self, *args, **kwargs):
         if self.is_approved:
             raise ValueError("Cannot modify an already approved request.")
+        
+        # First save the object to get an ID before setting the ManyToMany field
+        super(RequestedStudentSession, self).save(*args, **kwargs)
+
+        # Now assign the ManyToMany relationship
         tutor_sessions = TutorSession.objects.filter(session=self.session)
         self.available_tutor_sessions.set(tutor_sessions)
+
+        # Save the object again after updating the ManyToMany field
         super(RequestedStudentSession, self).save(*args, **kwargs)
 
     def __str__(self):
         status = "Approved" if self.is_approved else "Pending"
-        return f'Request by {self.student.user.get_full_name()} for {self.session} - {status}' 
+        return f'Request by {self.student.user.get_full_name()} for {self.session} - {status}'
+
     
 class StudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
