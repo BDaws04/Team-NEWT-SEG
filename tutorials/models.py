@@ -250,14 +250,23 @@ class RequestedStudentSession(models.Model):
     available_tutor_sessions = models.ManyToManyField('TutorSession', related_name='requested_sessions', blank=True)
 
     def approve_request(self, tutor_session):
+    # Check if the request is already approved or if the session is not available
         if self.is_approved or not tutor_session.session.is_available:
             raise ValueError("Cannot approve a request for a session that is not available or already approved.")
-        
+    
+    # Mark the session as not available
         tutor_session.session.is_available = False
         tutor_session.session.save()
-        StudentSession.objects.create(student=self.student, tutor_session=tutor_session)
+
+    # Create a StudentSession for the student and tutor session
+        student_session = StudentSession.objects.create(student=self.student, tutor_session=tutor_session)
+
+    # Mark the request as approved
         self.is_approved = True
         self.save()
+
+        return student_session
+
 
     def filter_unapproved_requests(self):
         return RequestedStudentSession.objects.filter(is_approved=False)

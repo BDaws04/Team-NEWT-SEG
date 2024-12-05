@@ -39,5 +39,6 @@ urlpatterns = [
     path('tutor-sessions/<int:pk>/', views.tutor_session_detail, name='tutor_session_detail'),
     path('tutor-sessions/', views.tutor_sessions_list, name='tutor_sessions_list'),
     path('request-session/', views.request_session, name='request_session'),
+    path('pending-requests/', views.list_pending_requests, name='pending_requests'),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

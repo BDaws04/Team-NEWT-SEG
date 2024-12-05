@@ -268,6 +268,18 @@ class SignUpView(LoginProhibitedMixin, FormView):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
     
 @login_required
+def list_pending_requests(request):
+    """Display a paginated list of all pending session requests."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    pending_requests = RequestedStudentSession.objects.filter(is_approved=False)
+    paginator = Paginator(pending_requests, 10)
+    page_number = request.GET.get('page')
+    requests = paginator.get_page(page_number)
+    return render(request, 'pending_requests.html', {'requests': requests})
+    
+@login_required
 def list_tutors(request):
     """Display a paginated list of all users who are students."""
     current_user = request.user
