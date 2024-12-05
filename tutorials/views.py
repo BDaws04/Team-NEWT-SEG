@@ -17,7 +17,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from .helpers import get_user_counts
 from django.contrib.auth import get_user_model
-from tutorials.forms import StudentSessionForm
+from tutorials.forms import SessionForm
 from tutorials.models import ProgrammingLanguage, RequestedStudentSession
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
@@ -33,10 +33,10 @@ def request_session(request):
 
     if current_user.role == 'STUDENT':
 
-        form = StudentSessionForm()
+        form = SessionForm()
 
         if request.method == 'POST':
-            form = StudentSessionForm(request.POST)
+            form = SessionForm(request.POST)
             if form.is_valid():
                 # Save the session object
                 session = form.save()
@@ -68,11 +68,50 @@ def request_session(request):
             else:
                 context['message'] = 'There was an error with your submission.'
 
-        # Ensure form is always in the context, either for initial render or after errors
         context['form'] = form
-
         return render(request, 'request_session.html', context)
 
+    elif current_user.role == 'TUTOR':
+
+        form = SessionForm()
+
+        if request.method == 'POST':
+            form = SessionForm(request.POST)
+            if form.is_valid():
+                # Save the session object
+                session = form.save()
+
+                # Get the related tutor profile
+                tutor = current_user.tutor_profile
+
+                print(f"Tutor: {tutor}")
+
+                # Assign the tutor to the session
+                tutor_session = TutorSession.objects.create(
+                    tutor=tutor,
+                    session=session,
+                )
+
+                try:
+                    tutor_session.full_clean()  # Validate the model
+                    tutor_session.save()  # Save the object
+                    print(f"Session saved with ID: {tutor_session.id}")
+                    context['message'] = 'Session request has been received!'
+                    form = None  # Clear the form after successful submission
+                except ValidationError as e:
+                    print(f"Validation error: {e}")
+                    context['message'] = 'There was a validation error with your request.'
+                except Exception as e:
+                    print(f"Error saving session: {e}")
+                    context['message'] = 'There was an error with your submission.'
+
+            else:
+                context['message'] = 'There was an error with your submission.'
+
+        context['form'] = form
+        return render(request, 'request_session.html', context)
+
+        
 
 @login_required
 def dashboard(request):
