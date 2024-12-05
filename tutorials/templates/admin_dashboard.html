@@ -10,20 +10,24 @@
         <div class="box">
           <a href="{% url 'list_students' %}" class="box-link">
             <div class="stats">
-              <h3>User Statistics</h3>
-              <p>Total Users: {{ total_users }}</p>
-              <p>Students: {{ student_count }}</p>
-              <p>Tutors: {{ tutor_count }}</p>
+              <h3>Students</h3>
             </div>
           </a>
         </div>
 
         <div class="box">
-          Box 2
+          <a href="{% url 'list_tutors' %}" class="box-link">
+            <div class="stats">
+              <h3>Tutors</h3>
+            </div>
+          </a>
         </div>
 
         <div class="box">
-          Box 3
+          <a href="{% url 'pending_requests' %}" class="box-link">
+            <div class="stats">
+              <h3>Pending Requests</h3>
+            </div>
         </div>
 
         <div class="box">
@@ -77,4 +81,5 @@
     margin: 5px 0;
   }
 </style>
+
 {% endblock %}

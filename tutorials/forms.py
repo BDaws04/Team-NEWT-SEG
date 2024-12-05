@@ -7,7 +7,8 @@ from .models import User, Tutor, Student, ProgrammingLanguage, Session
 from django import forms
 from django.contrib.auth import authenticate
 
-class StudentSessionForm(forms.ModelForm):
+
+class SessionForm(forms.ModelForm):
     class Meta:
         model = Session
         fields = [

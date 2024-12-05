@@ -17,43 +17,121 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from .helpers import get_user_counts
 from django.contrib.auth import get_user_model
-from tutorials.forms import StudentSessionForm
+from tutorials.forms import SessionForm
+from tutorials.models import ProgrammingLanguage, RequestedStudentSession
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
+
+@login_required
+def request_session(request):
+    """Display the form to request a new session."""
+
+    current_user = request.user
+    context = {'user': current_user}
+
+    if current_user.role == 'STUDENT':
+
+        form = SessionForm()
+
+        if request.method == 'POST':
+            form = SessionForm(request.POST)
+            if form.is_valid():
+                # Save the session object
+                session = form.save()
+
+                # Get the related student profile
+                student = current_user.student_profile
+
+                print(f"Student: {student}")
+
+                # Create the RequestedStudentSession instance
+                requested_session = RequestedStudentSession(
+                    student=student,
+                    session=session,
+                )
+
+                try:
+                    requested_session.full_clean()  # Validate the model
+                    requested_session.save()  # Save the object
+                    print(f"Requested session saved with ID: {requested_session.id}")
+                    context['message'] = 'Session request has been received!'
+                    form = None  # Clear the form after successful submission
+                except ValidationError as e:
+                    print(f"Validation error: {e}")
+                    context['message'] = 'There was a validation error with your request.'
+                except Exception as e:
+                    print(f"Error saving requested session: {e}")
+                    context['message'] = 'There was an error with your submission.'
+
+            else:
+                context['message'] = 'There was an error with your submission.'
+
+        context['form'] = form
+        return render(request, 'request_session.html', context)
+
+    elif current_user.role == 'TUTOR':
+
+        form = SessionForm()
+
+        if request.method == 'POST':
+            form = SessionForm(request.POST)
+            if form.is_valid():
+                # Save the session object
+                session = form.save()
+
+                # Get the related tutor profile
+                tutor = current_user.tutor_profile
+
+                print(f"Tutor: {tutor}")
+
+                # Assign the tutor to the session
+                tutor_session = TutorSession.objects.create(
+                    tutor=tutor,
+                    session=session,
+                )
+
+                try:
+                    tutor_session.full_clean()  # Validate the model
+                    tutor_session.save()  # Save the object
+                    print(f"Session saved with ID: {tutor_session.id}")
+                    context['message'] = 'Session request has been received!'
+                    form = None  # Clear the form after successful submission
+                except ValidationError as e:
+                    print(f"Validation error: {e}")
+                    context['message'] = 'There was a validation error with your request.'
+                except Exception as e:
+                    print(f"Error saving session: {e}")
+                    context['message'] = 'There was an error with your submission.'
+
+            else:
+                context['message'] = 'There was an error with your submission.'
+
+        context['form'] = form
+        return render(request, 'request_session.html', context)
+
+        
 
 @login_required
 def dashboard(request):
     """Display the current user's dashboard."""
 
     current_user = request.user
-    
     context = {'user': current_user}
 
     if current_user.role == 'STUDENT':
+        return render(request, 'student_dashboard.html', context)
 
-        form = StudentSessionForm()
-
-        if request.method == 'POST':
-            form = StudentSessionForm(request.POST)
-            if form.is_valid():
-                form.save()
-                context['message'] = 'Session request has been received!'
-                form = None
-
-        context['form'] = form
-
-        return render(request, 'student_dashboard.html',context)
-    
     elif current_user.role == 'TUTOR':
-        return render(request, 'tutor_dashboard.html',context)
+        return render(request, 'tutor_dashboard.html', context)
+
     elif current_user.role == 'ADMIN':
-        user_counts = get_user_counts()
-        context.update(user_counts)
-        print(context)
-        return render(request, 'admin_dashboard.html',context)
+        return render(request, 'admin_dashboard.html', context)
+
     else:
-        return render(request, 'dashboard.html',context)
+        return render(request, 'dashboard.html', context)
+
 
 
 @login_prohibited
@@ -188,7 +266,32 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+    
+@login_required
+def list_pending_requests(request):
+    """Display a paginated list of all pending session requests."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    pending_requests = RequestedStudentSession.objects.filter(is_approved=False)
+    paginator = Paginator(pending_requests, 10)
+    page_number = request.GET.get('page')
+    requests = paginator.get_page(page_number)
+    return render(request, 'pending_requests.html', {'requests': requests})
+    
+@login_required
+def list_tutors(request):
+    """Display a paginated list of all users who are students."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    tutor_list = Tutor.objects.all()
+    
+    paginator = Paginator(tutor_list, 10)
+    page_number = request.GET.get('page')
+    tutors = paginator.get_page(page_number)
 
+    return render(request, 'list_tutors.html', {'tutors': tutors})
     
 @login_required
 def list_students(request):
@@ -247,14 +350,6 @@ def delete_student(request, student_id):
             path = reverse('list_students')
             return HttpResponseRedirect(path)
         
-@login_required
-def list_tutors(request):
-    """Display all users who are tutors."""
-    current_user = request.user
-    if current_user.role != 'ADMIN':
-        return redirect('dashboard')
-    tutors = Tutor.objects.all()
-    return render(request, 'list_tutors.html', {'tutors': tutors})
 
 @login_required
 def tutor_detail(request, tutor_id):

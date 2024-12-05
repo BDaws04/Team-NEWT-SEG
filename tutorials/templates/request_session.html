@@ -1,0 +1,19 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+  <h2>Request a New Session</h2>
+
+  {% if message %}
+    <p>{{ message }}</p>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if not message %}
+      <button type="submit">Submit</button>
+    {% endif %}
+  </form>
+  
+{% endblock %}
+
