@@ -25,8 +25,8 @@ from django.core.exceptions import ValidationError
 User = get_user_model()
 
 @login_required
-def dashboard(request):
-    """Display the current user's dashboard."""
+def request_session(request):
+    """Display the form to request a new session."""
 
     current_user = request.user
     context = {'user': current_user}
@@ -53,22 +53,35 @@ def dashboard(request):
                 )
 
                 try:
-                     requested_session.full_clean()  # Validate the model
-                     requested_session.save()  # Save the object
-                     print(f"Requested session saved with ID: {requested_session.id}")
+                    requested_session.full_clean()  # Validate the model
+                    requested_session.save()  # Save the object
+                    print(f"Requested session saved with ID: {requested_session.id}")
+                    context['message'] = 'Session request has been received!'
+                    form = None  # Clear the form after successful submission
                 except ValidationError as e:
                     print(f"Validation error: {e}")
+                    context['message'] = 'There was a validation error with your request.'
                 except Exception as e:
                     print(f"Error saving requested session: {e}")
+                    context['message'] = 'There was an error with your submission.'
 
-                context['message'] = 'Session request has been received!'
-                form = None  # Remove the form after successful submission
             else:
                 context['message'] = 'There was an error with your submission.'
 
         # Ensure form is always in the context, either for initial render or after errors
         context['form'] = form
 
+        return render(request, 'request_session.html', context)
+
+
+@login_required
+def dashboard(request):
+    """Display the current user's dashboard."""
+
+    current_user = request.user
+    context = {'user': current_user}
+
+    if current_user.role == 'STUDENT':
         return render(request, 'student_dashboard.html', context)
 
     elif current_user.role == 'TUTOR':
