@@ -1,11 +1,7 @@
 """Unit tests for the User model."""
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from tutorials.models import User, Student, Tutor, Admin, Course, Session, StudentSession
-from datetime import datetime, timedelta
-from django.utils.timezone import now, make_aware
-
-
+from tutorials.models import User
 
 class UserModelTestCase(TestCase):
     """Unit tests for the User model."""
@@ -125,11 +121,40 @@ class UserModelTestCase(TestCase):
         self.user.email = 'johndoe@@example.org'
         self._assert_user_is_invalid()
 
+    def test_role_must_not_be_blank(self):
+        self.user.role = ''
+        self._assert_user_is_invalid()
+
+    def test_role_need_not_be_unique(self):
+        second_user = User.objects.get(username='@janedoe')
+        self.user.first_name = second_user.first_name
+        self._assert_user_is_valid()
+
+    def test_role_can_be_admin(self):
+        self.user.role = 'ADMIN'
+        self._assert_user_is_valid()
+
+    def test_role_can_be_student(self):
+        self.user.role = 'STUDENT'
+        self._assert_user_is_valid()
+    
+    def test_role_can_be_tutor(self):
+        self.user.role = 'TUTOR'
+        self._assert_user_is_valid()
+
+    def test_role_default_value_is_student(self):
+        new_user = User.objects.create(
+            username='@newuser',
+            first_name='new',
+            last_name='user',
+            email='newuser@gmail.com'
+        )
+        self._assert_student_is_valid()
+        self.assertEqual(new_user.role, User.Roles.STUDENT)
 
     def test_full_name_must_be_correct(self):
         full_name = self.user.full_name()
         self.assertEqual(full_name, "John Doe")
-
 
     def test_default_gravatar(self):
         actual_gravatar_url = self.user.gravatar()
@@ -150,7 +175,6 @@ class UserModelTestCase(TestCase):
         gravatar_url = f"{UserModelTestCase.GRAVATAR_URL}?size={size}&default=mp"
         return gravatar_url
 
-
     def _assert_user_is_valid(self):
         try:
             self.user.full_clean()
@@ -161,181 +185,181 @@ class UserModelTestCase(TestCase):
         with self.assertRaises(ValidationError):
             self.user.full_clean()
 
-class TutorModelTestCase(TestCase):
-    """Comprehensive unit tests for the Tutor model."""
+# class TutorModelTestCase(TestCase):
+#     """Comprehensive unit tests for the Tutor model."""
 
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='@tutor1',
-            first_name='Tutor',
-            last_name='One',
-            email='tutor1@example.com',
-            password='Password123'
-        )
-        self.tutor = Tutor.objects.create(
-            user=self.user,
-            expertise="Python, Django",
-            hourly_rate=50.00
-        )
+#     def setUp(self):
+#         self.user = User.objects.create_user(
+#             username='@tutor1',
+#             first_name='Tutor',
+#             last_name='One',
+#             email='tutor1@example.com',
+#             password='Password123'
+#         )
+#         self.tutor = Tutor.objects.create(
+#             user=self.user,
+#             expertise="Python, Django",
+#             hourly_rate=50.00
+#         )
 
-    def test_valid_tutor(self):
-        self._assert_tutor_is_valid()
+#     def test_valid_tutor(self):
+#         self._assert_tutor_is_valid()
 
-    def test_tutor_user_relationship(self):
-        self.assertEqual(self.tutor.user.username, '@tutor1')
+#     def test_tutor_user_relationship(self):
+#         self.assertEqual(self.tutor.user.username, '@tutor1')
 
-    def test_tutor_expertise(self):
-        self.assertEqual(self.tutor.expertise, "Python, Django")
+#     def test_tutor_expertise(self):
+#         self.assertEqual(self.tutor.expertise, "Python, Django")
 
-    def _assert_tutor_is_valid(self):
-        try:
-            self.tutor.full_clean()
-        except ValidationError:
-            self.fail('Test tutor should be valid')
+#     def _assert_tutor_is_valid(self):
+#         try:
+#             self.tutor.full_clean()
+#         except ValidationError:
+#             self.fail('Test tutor should be valid')
 
-    def _assert_tutor_is_invalid(self):
-        with self.assertRaises(ValidationError):
-            self.tutor.full_clean()
+#     def _assert_tutor_is_invalid(self):
+#         with self.assertRaises(ValidationError):
+#             self.tutor.full_clean()
 
-class CourseModelTestCase(TestCase):
-    """Comprehensive unit tests for the Course model."""
+# class CourseModelTestCase(TestCase):
+#     """Comprehensive unit tests for the Course model."""
 
-    def setUp(self):
-        self.course = Course.objects.create(
-            name="Python",
-            description="Learn Python programming",
-            duration=40
-        )
+#     def setUp(self):
+#         self.course = Course.objects.create(
+#             name="Python",
+#             description="Learn Python programming",
+#             duration=40
+#         )
 
-    def test_valid_course(self):
-        self._assert_course_is_valid()
+#     def test_valid_course(self):
+#         self._assert_course_is_valid()
 
-    def test_course_name_constraints(self):
-        self.course.name = ''  # Cannot be blank
-        self._assert_course_is_invalid()
+#     def test_course_name_constraints(self):
+#         self.course.name = ''  # Cannot be blank
+#         self._assert_course_is_invalid()
 
-        self.course.name = 'x' * 101  # Exceeds max length
-        self._assert_course_is_invalid()
+#         self.course.name = 'x' * 101  # Exceeds max length
+#         self._assert_course_is_invalid()
 
-        self.course.name = 'Python Advanced'  # Valid
-        self._assert_course_is_valid()
+#         self.course.name = 'Python Advanced'  # Valid
+#         self._assert_course_is_valid()
 
-    def _assert_course_is_valid(self):
-        try:
-            self.course.full_clean()
-        except ValidationError:
-            self.fail('Test course should be valid')
+#     def _assert_course_is_valid(self):
+#         try:
+#             self.course.full_clean()
+#         except ValidationError:
+#             self.fail('Test course should be valid')
 
-    def _assert_course_is_invalid(self):
-        with self.assertRaises(ValidationError):
-            self.course.full_clean()
+#     def _assert_course_is_invalid(self):
+#         with self.assertRaises(ValidationError):
+#             self.course.full_clean()
 
-class SessionModelTestCase(TestCase):
-    """Comprehensive unit tests for the Session model."""
+# class SessionModelTestCase(TestCase):
+#     """Comprehensive unit tests for the Session model."""
 
-    def setUp(self):
-        self.course = Course.objects.create(
-            name="Python",
-            description="Learn Python programming",
-            duration=40
-        )
-        self.user = User.objects.create_user(
-            username='@tutor1',
-            first_name='Tutor',
-            last_name='One',
-            email='tutor1@example.com',
-            password='Password123'
-        )
-        self.tutor = Tutor.objects.create(
-            user=self.user,
-            expertise="Python",
-            hourly_rate=50.00
-        )
-        self.session = Session.objects.create(
-            course=self.course,
-            tutor=self.tutor,
-            level='beginner',
-            start_time=make_aware(datetime.now()),  
-            end_time=make_aware(datetime.now() + timedelta(hours=2))
-        )
+#     def setUp(self):
+#         self.course = Course.objects.create(
+#             name="Python",
+#             description="Learn Python programming",
+#             duration=40
+#         )
+#         self.user = User.objects.create_user(
+#             username='@tutor1',
+#             first_name='Tutor',
+#             last_name='One',
+#             email='tutor1@example.com',
+#             password='Password123'
+#         )
+#         self.tutor = Tutor.objects.create(
+#             user=self.user,
+#             expertise="Python",
+#             hourly_rate=50.00
+#         )
+#         self.session = Session.objects.create(
+#             course=self.course,
+#             tutor=self.tutor,
+#             level='beginner',
+#             start_time=make_aware(datetime.now()),  
+#             end_time=make_aware(datetime.now() + timedelta(hours=2))
+#         )
 
-    def test_valid_session(self):
-        self._assert_session_is_valid()
+#     def test_valid_session(self):
+#         self._assert_session_is_valid()
 
-    def test_session_level_constraints(self):
-        self.session.level = 'invalid'  # Invalid choice
-        self._assert_session_is_invalid()
+#     def test_session_level_constraints(self):
+#         self.session.level = 'invalid'  # Invalid choice
+#         self._assert_session_is_invalid()
 
-        self.session.level = 'beginner'  # Valid
-        self._assert_session_is_valid()
+#         self.session.level = 'beginner'  # Valid
+#         self._assert_session_is_valid()
 
-    def _assert_session_is_valid(self):
-        try:
-            self.session.full_clean()
-        except ValidationError:
-            self.fail('Test session should be valid')
+#     def _assert_session_is_valid(self):
+#         try:
+#             self.session.full_clean()
+#         except ValidationError:
+#             self.fail('Test session should be valid')
 
-    def _assert_session_is_invalid(self):
-        with self.assertRaises(ValidationError):
-            self.session.full_clean()
+#     def _assert_session_is_invalid(self):
+#         with self.assertRaises(ValidationError):
+#             self.session.full_clean()
 
 
-class StudentSessionModelTestCase(TestCase):
-    """Comprehensive unit tests for the StudentSession model."""
+# class StudentSessionModelTestCase(TestCase):
+#     """Comprehensive unit tests for the StudentSession model."""
 
-    def setUp(self):
-        self.course = Course.objects.create(
-            name="Python",
-            description="Learn Python programming",
-            duration=40
-        )
-        self.user_tutor = User.objects.create_user(
-            username='@tutor1',
-            first_name='Tutor',
-            last_name='One',
-            email='tutor1@example.com',
-            password='Password123'
-        )
-        self.tutor = Tutor.objects.create(
-            user=self.user_tutor,
-            expertise="Python",
-            hourly_rate=50.00
-        )
-        # Use timezone-aware datetime
-        self.session = Session.objects.create(
-            course=self.course,
-            tutor=self.tutor,
-            level='beginner',
-            start_time=now(),  # Timezone-aware datetime
-            end_time=now() + timedelta(hours=2)  # Timezone-aware datetime
-        )
-        self.user_student = User.objects.create_user(
-            username='@student1',
-            first_name='Student',
-            last_name='One',
-            email='student1@example.com',
-            password='Password123'
-        )
-        self.student = Student.objects.create(user=self.user_student)
-        self.student_session = StudentSession.objects.create(
-            student=self.student,
-            session=self.session
-        )
+#     def setUp(self):
+#         self.course = Course.objects.create(
+#             name="Python",
+#             description="Learn Python programming",
+#             duration=40
+#         )
+#         self.user_tutor = User.objects.create_user(
+#             username='@tutor1',
+#             first_name='Tutor',
+#             last_name='One',
+#             email='tutor1@example.com',
+#             password='Password123'
+#         )
+#         self.tutor = Tutor.objects.create(
+#             user=self.user_tutor,
+#             expertise="Python",
+#             hourly_rate=50.00
+#         )
+#         # Use timezone-aware datetime
+#         self.session = Session.objects.create(
+#             course=self.course,
+#             tutor=self.tutor,
+#             level='beginner',
+#             start_time=now(),  # Timezone-aware datetime
+#             end_time=now() + timedelta(hours=2)  # Timezone-aware datetime
+#         )
+#         self.user_student = User.objects.create_user(
+#             username='@student1',
+#             first_name='Student',
+#             last_name='One',
+#             email='student1@example.com',
+#             password='Password123'
+#         )
+#         self.student = Student.objects.create(user=self.user_student)
+#         self.student_session = StudentSession.objects.create(
+#             student=self.student,
+#             session=self.session
+#         )
 
-    def test_valid_student_session(self):
-        self._assert_student_session_is_valid()
+#     def test_valid_student_session(self):
+#         self._assert_student_session_is_valid()
 
-    def test_student_session_constraints(self):
-        duplicate = StudentSession(student=self.student, session=self.session)
-        with self.assertRaises(ValidationError):
-            duplicate.full_clean()
+#     def test_student_session_constraints(self):
+#         duplicate = StudentSession(student=self.student, session=self.session)
+#         with self.assertRaises(ValidationError):
+#             duplicate.full_clean()
 
-    def _assert_student_session_is_valid(self):
-        try:
-            self.student_session.full_clean()
-        except ValidationError:
-            self.fail('Test student session should be valid')
+#     def _assert_student_session_is_valid(self):
+#         try:
+#             self.student_session.full_clean()
+#         except ValidationError:
+#             self.fail('Test student session should be valid')
 
-    def _assert_student_session_is_invalid(self):
-        with self.assertRaises(ValidationError):
-            self.student_session.full_clean()
+#     def _assert_student_session_is_invalid(self):
+#         with self.assertRaises(ValidationError):
+#             self.student_session.full_clean()

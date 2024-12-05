@@ -71,7 +71,7 @@ class Student(models.Model):
         super(Student, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'Student: {self.user.get_full_name()}'
+        return f'Student: {self.user.full_name()}'
 
 
 class ProgrammingLanguage(models.Model):
@@ -119,7 +119,7 @@ class Tutor(models.Model):
     expertise_list.short_description = 'Expertise'
 
     def __str__(self):
-        return f'Tutor: {self.user.username}'
+        return f'Tutor: {self.user.full_name()}'
 
 class Admin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
@@ -183,7 +183,7 @@ class Session(models.Model):
     )
     frequency = models.CharField(
         max_length=20,
-        choices=[('Weekly', 'Weekly'), ('By Weekly', 'By Weekly')],
+        choices=[('Weekly', 'Weekly'), ('Bi-Weekly', 'Bi-Weekly')],
         default='Weekly'
     )
     duration_hours = models.PositiveIntegerField(
@@ -318,7 +318,7 @@ class StudentSession(models.Model):
         default='Fall',
         help_text="Select the season for the session"
     )
-    frequency = models.CharField(max_length=20, choices=[('Weekly','Weekly'),('By Weekly','By Weekly')], default='Weekly')
+    frequency = models.CharField(max_length=20, choices=[('Weekly','Weekly'),('Bi-Weekly','Bi-Weekly')], default='Weekly')
     year = models.PositiveIntegerField(help_text="Enter the year (e.g., 2024)",default=2024)
     start_time = models.DateTimeField(default=now)
     end_time = models.DateTimeField(default=default_end_time)
