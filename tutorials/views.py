@@ -17,6 +17,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from .helpers import get_user_counts
 from django.contrib.auth import get_user_model
+from django.core.paginator import Paginator
 
 User = get_user_model()
 
@@ -177,11 +178,20 @@ class SignUpView(LoginProhibitedMixin, FormView):
     
 @login_required
 def list_students(request):
-    """Display all users who are students."""
+    """Display a paginated list of all users who are students."""
     current_user = request.user
     if current_user.role != 'ADMIN':
-        return redirect('dashboard')
-    students = Student.objects.all()
+        return redirect('dashboard')  # Redirect non-admin users to their dashboard
+
+    # Get all students
+    students_list = Student.objects.all()
+    
+    # Implement pagination with 10 students per page
+    paginator = Paginator(students_list, 10)  # 10 students per page
+    page_number = request.GET.get('page')  # Get the current page number from the query params
+    students = paginator.get_page(page_number)  # Get the students for the current page
+
+    # Render the template with paginated students
     return render(request, 'list_students.html', {'students': students})
 
 @login_required

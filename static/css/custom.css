@@ -234,6 +234,17 @@ h3.profile-title {
   background-color: #0056b3;
 }
 
+.table {
+  margin-top: 20px;
+}
+
+.pagination {
+  margin-top: 20px;
+}
+
+.text-center {
+  margin-bottom: 20px;
+}
 
 
 
