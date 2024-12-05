@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Admin, User, Student, ProgrammingLanguage, Tutor, Session, TutorSession, RequestedStudentSession, StudentSession
+    Admin, User, Student, ProgrammingLanguage, Tutor, Session, TutorSession, RequestedStudentSession, StudentSession, Invoice
 )
 
 @admin.register(User)
@@ -53,3 +53,9 @@ class StudentSessionAdmin(admin.ModelAdmin):
     list_display = ['student', 'tutor_session', 'registered_at']
     search_fields = ['student__user__username', 'tutor_session__session__programming_language__name']
     list_filter = ['registered_at']
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ['requested_session', 'amount', 'created_at', 'due_date', 'payment_status']
+    search_fields = ['requested_session__student__user__username', 'requested_session__tutor__user__username']
+    list_filter = ['payment_status', 'created_at', 'due_date']

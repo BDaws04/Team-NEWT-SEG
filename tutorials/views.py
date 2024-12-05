@@ -11,14 +11,13 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from tutorials.models import Student, Tutor, TutorSession
+from tutorials.models import Student, Tutor, TutorSession, Invoice
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from .helpers import get_user_counts
 from django.contrib.auth import get_user_model
 from tutorials.forms import StudentSessionForm
-from tutorials.models import ProgrammingLanguage
 from django.core.paginator import Paginator
 
 User = get_user_model()
@@ -295,4 +294,14 @@ def tutor_sessions_list(request):
 @login_required
 def tutor_session_detail(request, pk):
     tutor_session = get_object_or_404(TutorSession, id=pk)  # Use `pk` instead of `session_id`
-    return render(request, 'tutor_session_detail.html', {'session': tutor_session})
+    return render(request, 'tutor_session_detail.html', {'session': tutor_session})  
+
+@login_required
+def invoices(request):
+    """Display all invoices for student lessons with tutors."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    invoices = Invoice.objects.all()
+    return render(request, 'invoices.html', {'invoices': invoices})
+ 

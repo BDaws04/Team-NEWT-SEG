@@ -38,5 +38,6 @@ urlpatterns = [
     path('list_tutors/tutor/<int:tutor_id>/delete_tutor/', views.delete_tutor, name='delete_tutor'),
     path('tutor-sessions/<int:pk>/', views.tutor_session_detail, name='tutor_session_detail'),
     path('tutor-sessions/', views.tutor_sessions_list, name='tutor_sessions_list'),
+    path('invoices/', views.invoices, name='invoices'),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 from datetime import datetime, timedelta
 from django.db import models
 from django.core.validators import MinValueValidator
+from decimal import Decimal
 
 def calculate_end_date(start_date, duration_weeks):
     return start_date + timedelta(weeks=duration_weeks,days=4)
@@ -291,6 +292,47 @@ class StudentSession(models.Model):
     def __str__(self):
         return f'{self.student.user.get_full_name()} -> {self.tutor_session}'
 
+class Invoice(models.Model):
+    PAYMENT_STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+        ('OVERDUE', 'Overdue'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+
+    requested_session = models.ForeignKey(
+        'RequestedStudentSession',
+        on_delete=models.CASCADE,
+        related_name='invoices',
+        null=True,
+        blank=True
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00')
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateField()
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='PENDING'
+    )
+    payment_date = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Invoice #{self.id} - {self.requested_session.student.user.get_full_name()} - {self.payment_status}"
+
+    def mark_as_paid(self):
+        from django.utils import timezone
+        self.payment_status = 'PAID'
+        self.payment_date = timezone.now().date()
+        self.save()
 
     """
     class Session(models.Model):
