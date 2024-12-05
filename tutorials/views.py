@@ -266,7 +266,20 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+    
+@login_required
+def list_tutors(request):
+    """Display a paginated list of all users who are students."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    tutor_list = Tutor.objects.all()
+    
+    paginator = Paginator(tutor_list, 10)
+    page_number = request.GET.get('page')
+    tutors = paginator.get_page(page_number)
 
+    return render(request, 'list_tutors.html', {'tutors': tutors})
     
 @login_required
 def list_students(request):
@@ -325,14 +338,6 @@ def delete_student(request, student_id):
             path = reverse('list_students')
             return HttpResponseRedirect(path)
         
-@login_required
-def list_tutors(request):
-    """Display all users who are tutors."""
-    current_user = request.user
-    if current_user.role != 'ADMIN':
-        return redirect('dashboard')
-    tutors = Tutor.objects.all()
-    return render(request, 'list_tutors.html', {'tutors': tutors})
 
 @login_required
 def tutor_detail(request, tutor_id):
