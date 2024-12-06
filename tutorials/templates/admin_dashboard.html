@@ -28,16 +28,24 @@
             <div class="stats">
               <h3>Pending Requests</h3>
             </div>
+          </a>
         </div>
 
         <div class="box">
           <a href="{% url 'invoices' %}" class="box-link">
             <div class="stats">
               <h3>Invoices</h3>
-              <p>Total Invoices: {{ total_invoices }}</p>
             </div>
           </a>
         </div>
+      </div>
+
+      <div class="box">
+        <a href="{% url 'tutor_sessions_list' %}" class="box-link">
+          <div class="stats">
+            <h3>Tutor Sessions</h3>
+          </div>
+        </a>
       </div>
 
     </div>

@@ -30,7 +30,6 @@ urlpatterns = [
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('signup/', views.SignUpView.as_view(), name='sign_up'),
     path('list-students/', views.list_students, name='list_students'),
-    path('list-students-no-navbar/', views.list_students_no_navbar, name='list_students_no_navbar'),
     path('list-students/student/<int:student_id>/', views.student_detail, name='student_detail'),
     path('list-students/student/<int:student_id>/delete-student/', views.delete_student, name='delete_student'),
     path('list-tutors/', views.list_tutors, name='list_tutors'),
