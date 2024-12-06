@@ -389,5 +389,8 @@ def invoices(request):
     if current_user.role != 'ADMIN':
         return redirect('dashboard')
     invoices = Invoice.objects.all()
+    paginator = Paginator(invoices, 10)
+    page_number = request.GET.get('page')
+    invoices = paginator.get_page(page_number)
     return render(request, 'invoices.html', {'invoices': invoices})
  
