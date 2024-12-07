@@ -394,3 +394,17 @@ def invoices(request):
     invoices = paginator.get_page(page_number)
     return render(request, 'invoices.html', {'invoices': invoices})
  
+@login_required
+def available_tutors(request, request_id):
+    """Display all available tutors for a specific session request."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    try:
+        requested_session = RequestedStudentSession.objects.get(pk=request_id)
+    except RequestedStudentSession.DoesNotExist:
+        raise Http404(f"Could not find session request with primary key {request_id}")
+    else:
+        tutors = RequestedStudentSession.available_tutor_sessions.all()
+        context = {'tutors': tutors, 'request_id': request_id}
+        return render(request, 'available_tutors.html', context)
