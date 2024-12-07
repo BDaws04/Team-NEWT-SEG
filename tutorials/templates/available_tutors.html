@@ -1,0 +1,72 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Available Tutors for Session Request</h1>
+    <p class="text-center">Here is a list of available tutors for this session request.</p>
+
+    <!-- Table displaying available tutors -->
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Tutor</th>
+                <th>Session</th>
+                <th>Requested At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tutor in tutors %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ tutor.tutor.user.get_full_name }}</td>
+                <td>{{ tutor.session }}</td>
+                <td>{{ tutor.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    {% if not tutor.session.is_approved %}
+                    <a href="{% url 'approve_session' request_id=request_id %}" class="btn btn-primary btn-sm">Approve Session</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not tutors %}
+    <p class="text-center">No tutors available for this session request.</p>
+    {% endif %}
+
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if tutors.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ tutors.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo; Previous</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo; Previous</span>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Page {{ tutors.number }} of {{ tutors.paginator.num_pages }}</span>
+            </li>
+
+            {% if tutors.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ tutors.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">Next &raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next &raquo;</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

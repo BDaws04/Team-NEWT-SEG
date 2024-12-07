@@ -15,7 +15,6 @@ from tutorials.models import Student, Tutor, TutorSession, Invoice
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
-from .helpers import get_user_counts
 from django.contrib.auth import get_user_model
 from tutorials.forms import SessionForm
 from tutorials.models import ProgrammingLanguage, RequestedStudentSession
@@ -23,6 +22,10 @@ from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 
 User = get_user_model()
+
+@login_required
+def approve_session(request, request_id):
+    return HttpResponseForbidden("You do not have permission to access this page.")
 
 @login_required
 def request_session(request):
@@ -94,6 +97,7 @@ def request_session(request):
 
                 try:
                     tutor_session.full_clean()  # Validate the model
+                    tutor_session.update_student_sessions()
                     tutor_session.save()  # Save the object
                     print(f"Session saved with ID: {tutor_session.id}")
                     context['message'] = 'Session request has been received!'
@@ -273,6 +277,7 @@ def list_pending_requests(request):
     current_user = request.user
     if current_user.role != 'ADMIN':
         return redirect('dashboard')
+    
     pending_requests = RequestedStudentSession.objects.filter(is_approved=False)
     paginator = Paginator(pending_requests, 10)
     page_number = request.GET.get('page')
@@ -405,6 +410,10 @@ def available_tutors(request, request_id):
     except RequestedStudentSession.DoesNotExist:
         raise Http404(f"Could not find session request with primary key {request_id}")
     else:
-        tutors = RequestedStudentSession.available_tutor_sessions.all()
+        tutors = requested_session.available_tutor_sessions.all()
+        print(f"Available tutors: {tutors}")
+        paginator = Paginator(tutors, 10)
+        page_number = request.GET.get('page')
+        tutors = paginator.get_page(page_number)
         context = {'tutors': tutors, 'request_id': request_id}
         return render(request, 'available_tutors.html', context)

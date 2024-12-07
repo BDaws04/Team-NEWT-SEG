@@ -243,6 +243,15 @@ class TutorSession(models.Model):
         self.session = session
         self.save()
 
+    def save(self, *args, **kwargs):
+        student_sessions = RequestedStudentSession.objects.filter(is_approved=False)
+        for student_session in student_sessions:
+            if student_session.session.programming_language == self.session.programming_language and student_session.session.level == self.session.level and student_session.session.season == self.session.season and student_session.session.year == self.session.year:
+                student_session.available_tutor_sessions.add(self)
+                student_session.save()
+        super(RequestedStudentSession, self).save(*args, **kwargs)
+
+
 class RequestedStudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='requested_sessions')
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='requests')
@@ -280,8 +289,10 @@ class RequestedStudentSession(models.Model):
         super(RequestedStudentSession, self).save(*args, **kwargs)
 
         # Now assign the ManyToMany relationship
-        tutor_sessions = TutorSession.objects.filter(session=self.session)
-        self.available_tutor_sessions.set(tutor_sessions)
+        tutor_sessions = TutorSession.objects.all()
+        for tutor_session in tutor_sessions:
+            if tutor_session.session.programming_language == self.session.programming_language and tutor_session.session.level == self.session.level and tutor_session.session.season == self.session.season and tutor_session.session.year == self.session.year:
+                self.available_tutor_sessions.add(tutor_session)
 
         # Save the object again after updating the ManyToMany field
         super(RequestedStudentSession, self).save(*args, **kwargs)
