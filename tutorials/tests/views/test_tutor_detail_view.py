@@ -18,7 +18,7 @@ class TutorDetailViewTestCase(TestCase):
         self.url = reverse('tutor_detail', kwargs={'tutor_id': self.tutor.pk})
 
     def test_tutor_detail_url(self):
-        self.assertEqual(self.url, f'/list_tutors/tutor/{self.tutor.pk}/')
+        self.assertEqual(self.url, f'/list-tutors/tutor/{self.tutor.pk}/')
     
     def test_tutor_detail_authenticated_admin_user(self):
         self.client.login(username=self.admin_user.username, password='Password123')

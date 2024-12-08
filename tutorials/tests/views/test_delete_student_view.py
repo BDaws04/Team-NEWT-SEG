@@ -18,7 +18,7 @@ class DeleteStudentViewTestCase(TestCase):
         self.url = reverse('delete_student', kwargs={'student_id': self.student.pk})
 
     def test_delete_student_url(self):
-        self.assertEqual(self.url, f'/list_students/student/{self.student.pk}/delete_student/')
+        self.assertEqual(self.url, f'/list-students/student/{self.student.pk}/delete-student/')
 
     def test_delete_student_authenticated_admin_user(self):
         self.client.login(username=self.admin_user.username, password='Password123')

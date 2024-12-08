@@ -18,7 +18,7 @@ class ListTutorViewTestCase(TestCase):
         Tutor.objects.create(user=self.tutor_user)
         
     def test_list_tutors_url(self):
-        self.assertEqual(self.url,'/list_tutors/')
+        self.assertEqual(self.url,'/list-tutors/')
         
     def test_list_tutors_authenticated_admin_user(self):
         self.client.login(username=self.admin_user.username, password='Password123')
@@ -47,3 +47,13 @@ class ListTutorViewTestCase(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('log_in'), response.url)
+
+    def test_list_tutors_pagination(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'list_tutors.html')
+        tutors = response.context['tutors']
+        self.assertEqual(len(tutors), 1)
+        self.assertEqual(tutors.number, 1)
+        self.assertEqual(tutors.paginator.num_pages, 1)

@@ -47,3 +47,13 @@ class ListStudentsViewTestCase(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('log_in'), response.url)
+    
+    def test_list_students_pagination(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'list_students.html')
+        students = response.context['students']
+        self.assertEqual(len(students), 1)
+        self.assertEqual(students.number, 1)
+        self.assertEqual(students.paginator.num_pages, 1)
