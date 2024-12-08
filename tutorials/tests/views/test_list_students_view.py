@@ -18,7 +18,7 @@ class ListStudentsViewTestCase(TestCase):
         Student.objects.create(user=self.student_user)
         
     def test_list_students_url(self):
-        self.assertEqual(self.url,'/list_students/')
+        self.assertEqual(self.url,'/list-students/')
         
     def test_list_students_authenticated_admin_user(self):
         self.client.login(username=self.admin_user.username, password='Password123')

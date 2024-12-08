@@ -64,9 +64,9 @@ def request_session(request):
                 except ValidationError as e:
                     print(f"Validation error: {e}")
                     context['message'] = 'There was a validation error with your request.'
-                except Exception as e:
-                    print(f"Error saving requested session: {e}")
-                    context['message'] = 'There was an error with your submission.'
+                # except Exception as e:
+                #     print(f"Error saving requested session: {e}")
+                #     context['message'] = 'There was an error with your submission.'
 
             else:
                 context['message'] = 'There was an error with your submission.'
@@ -114,6 +114,9 @@ def request_session(request):
 
         context['form'] = form
         return render(request, 'request_session.html', context)
+        
+    else:
+        return redirect('dashboard')
 
         
 
