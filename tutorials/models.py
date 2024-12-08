@@ -246,7 +246,11 @@ class TutorSession(models.Model):
     def save(self, *args, **kwargs):
         student_sessions = RequestedStudentSession.objects.filter(is_approved=False)
         for student_session in student_sessions:
-            if student_session.session.programming_language == self.session.programming_language and student_session.session.level == self.session.level and student_session.session.season == self.session.season and student_session.session.year == self.session.year:
+            if student_session.session.programming_language == self.session.programming_language and \
+               student_session.session.level == self.session.level and \
+               student_session.session.season == self.session.season and \
+               student_session.session.year == self.session.year:
+                
                 student_session.available_tutor_sessions.add(self)
                 student_session.save()
         super(RequestedStudentSession, self).save(*args, **kwargs)
@@ -349,9 +353,20 @@ class Invoice(models.Model):
     )
     payment_date = models.DateField(null=True, blank=True)
     notes = models.TextField(blank=True)
-
+    
     class Meta:
         ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if self.requested_session:
+            session = self.requested_session.session
+            
+            if session.duration_hours <= 1:
+                self.amount = Decimal('30.00')
+            elif session.duration_hours <= 2:
+                self.amount = Decimal('50.00')
+                
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Invoice #{self.id} - {self.requested_session.student.user.get_full_name()} - {self.payment_status}"

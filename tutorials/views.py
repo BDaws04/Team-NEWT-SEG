@@ -417,3 +417,13 @@ def available_tutors(request, request_id):
         tutors = paginator.get_page(page_number)
         context = {'tutors': tutors, 'request_id': request_id}
         return render(request, 'available_tutors.html', context)
+    
+@login_required
+def student_pending_payments(request):
+    """Display all pending payments for student lessons with tutors."""
+    current_user = request.user
+    if current_user.role != 'STUDENT':
+        return redirect('dashboard')
+    pending_payments = Invoice.objects.filter(payment_status='PENDING')
+    return render(request, 'student_pending_payment.html', {'pending_payments': pending_payments})
+

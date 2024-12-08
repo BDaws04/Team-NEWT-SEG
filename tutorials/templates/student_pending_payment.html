@@ -1,0 +1,43 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Pending Invoice</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Invoice Details</h5>
+            <p class="card-text">You have a pending invoice for your tutoring session.</p>
+
+            <table class="table">
+                <tr>
+                    <th>Amount Due:</th>
+                    <td>${{ invoice.amount }}</td>
+                </tr>
+                <tr>
+                    <th>Due Date:</th>
+                    <td>{{ invoice.due_date }}</td>
+                </tr>
+                <tr>
+                    <th>Tutor:</th>
+                    <td>{{ invoice.requested_session.tutor.user.full_name }}</td>
+                </tr>
+                <tr>
+                    <th>Session:</th>
+                    <td>{{ invoice.requested_session.session }}</td>
+                </tr>
+            </table>
+
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle"></i> Please ensure you have made the payment before confirming below.
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Confirm Payment Made
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
