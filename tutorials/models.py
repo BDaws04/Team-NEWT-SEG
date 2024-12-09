@@ -244,18 +244,20 @@ class TutorSession(models.Model):
         self.save()
 
     def save(self, *args, **kwargs):
-        student_sessions = RequestedStudentSession.objects.filter(is_approved=False)
+        super().save(*args, **kwargs)
+        
+        student_sessions = RequestedStudentSession.objects.filter(
+            is_approved=False,
+            session__programming_language=self.session.programming_language,
+            session__level=self.session.level,
+            session__season=self.session.season,
+            session__year=self.session.year
+        )
+
         for student_session in student_sessions:
-            if student_session.session.programming_language == self.session.programming_language and \
-               student_session.session.level == self.session.level and \
-               student_session.session.season == self.session.season and \
-               student_session.session.year == self.session.year:
-                
-                student_session.available_tutor_sessions.add(self)
-                student_session.save()
-        super(RequestedStudentSession, self).save(*args, **kwargs)
-
-
+            student_session.available_tutor_sessions.add(self)
+            student_session.save()
+    
 class RequestedStudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='requested_sessions')
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='requests')

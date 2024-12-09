@@ -195,7 +195,7 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
         role = self.cleaned_data.get('role')
 
         if role == User.Roles.TUTOR:
-            tutor = Tutor(user=user)
+            tutor = Tutor.objects.create(user=user)
             tutor.save()
 
             # Assign specialties to the tutor
@@ -204,7 +204,7 @@ class SignUpForm(NewPasswordMixin, forms.ModelForm):
                 tutor.expertise.set(expertise)
 
         else:
-            student = Student(user=user)
+            student = Student.objects.create(user=user)
             student.save()
         
         user.role = role

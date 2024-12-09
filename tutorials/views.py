@@ -45,7 +45,7 @@ def request_session(request):
                 session = form.save()
 
                 # Get the related student profile
-                student = current_user.student_profile
+                student = Student.objects.get(user=current_user)
 
                 print(f"Student: {student}")
 
@@ -81,11 +81,11 @@ def request_session(request):
         if request.method == 'POST':
             form = SessionForm(request.POST)
             if form.is_valid():
-                # Save the session object
+                # Save the session objec
                 session = form.save()
 
                 # Get the related tutor profile
-                tutor = current_user.tutor_profile
+                tutor = Tutor.objects.get(user=current_user)
 
                 print(f"Tutor: {tutor}")
 
@@ -97,7 +97,6 @@ def request_session(request):
 
                 try:
                     tutor_session.full_clean()  # Validate the model
-                    tutor_session.update_student_sessions()
                     tutor_session.save()  # Save the object
                     print(f"Session saved with ID: {tutor_session.id}")
                     context['message'] = 'Session request has been received!'

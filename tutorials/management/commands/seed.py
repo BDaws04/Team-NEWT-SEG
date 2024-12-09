@@ -60,8 +60,10 @@ class Command(BaseCommand):
             password='Password123',
             first_name=self.faker.first_name(),
             last_name=self.faker.last_name(),
+            role=User.Roles.TUTOR
         )
         tutor = Tutor.objects.create(user=user)
+        tutor.save()
 
         # Assign random programming languages to the tutor
         languages = ProgrammingLanguage.objects.order_by('?')[:randint(1, 4)]
@@ -77,8 +79,10 @@ class Command(BaseCommand):
             password='Password123',
             first_name=self.faker.first_name(),
             last_name=self.faker.last_name(),
+            role=User.Roles.STUDENT
         )
-        Student.objects.create(user=user)
+        student = Student.objects.create(user=user)
+        student.save()
         print(f"Student {user.username} created.")
 
     
