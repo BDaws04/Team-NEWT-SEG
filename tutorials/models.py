@@ -210,7 +210,7 @@ class Session(models.Model):
 
         self.end_day = calculate_end_date(self.start_day, duration_weeks)
 
-        # Ensure end_day is a date object
+        
         if isinstance(self.end_day, datetime):
             self.end_day = self.end_day.date()
 
@@ -253,8 +253,51 @@ class TutorSession(models.Model):
                 
                 student_session.available_tutor_sessions.add(self)
                 student_session.save()
-        super(RequestedStudentSession, self).save(*args, **kwargs)
+        super(TutorSession, self).save(*args, **kwargs)
 
+
+# class RequestedStudentSession(models.Model):
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='requested_sessions')
+#     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='requests')
+#     requested_at = models.DateTimeField(auto_now_add=True)
+#     is_approved = models.BooleanField(default=False, help_text="Indicates if the session request is approved")
+#     available_tutor_sessions = models.ManyToManyField('TutorSession', related_name='requested_sessions', blank=True)
+
+#     def approve_request(self, tutor_session):
+#         if self.is_approved or not tutor_session.session.is_available:
+#             raise ValueError("Cannot approve a request for a session that is not available or already approved.")
+    
+#         tutor_session.session.is_available = False
+#         tutor_session.session.save()
+
+    
+#         student_session = StudentSession.objects.create(student=self.student, tutor_session=tutor_session)
+
+   
+#         self.is_approved = True
+#         self.save()
+
+#         return student_session
+
+#     def filter_unapproved_requests(self):
+#         return RequestedStudentSession.objects.filter(is_approved=False)
+
+#     def save(self, *args, **kwargs):
+#         if self.is_approved:
+#             raise ValueError("Cannot modify an already approved request.")
+        
+#         super(RequestedStudentSession, self).save(*args, **kwargs)
+
+#         tutor_sessions = TutorSession.objects.all()
+#         for tutor_session in tutor_sessions:
+#             if tutor_session.session.programming_language == self.session.programming_language and tutor_session.session.level == self.session.level and tutor_session.session.season == self.session.season and tutor_session.session.year == self.session.year:
+#                 self.available_tutor_sessions.add(tutor_session)
+
+#         super(RequestedStudentSession, self).save(*args, **kwargs)
+
+#     def __str__(self):
+#         status = "Approved" if self.is_approved else "Pending"
+#         return f'Request by {self.student.user.get_full_name()} for {self.session} - {status}'
 
 class RequestedStudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='requested_sessions')
@@ -263,49 +306,46 @@ class RequestedStudentSession(models.Model):
     is_approved = models.BooleanField(default=False, help_text="Indicates if the session request is approved")
     available_tutor_sessions = models.ManyToManyField('TutorSession', related_name='requested_sessions', blank=True)
 
+    class Meta:
+        unique_together = ('student', 'session')
+        ordering = ['-requested_at']
+        verbose_name = "Requested Student Session"
+        verbose_name_plural = "Requested Student Sessions"
+
     def approve_request(self, tutor_session):
-    # Check if the request is already approved or if the session is not available
         if self.is_approved or not tutor_session.session.is_available:
             raise ValueError("Cannot approve a request for a session that is not available or already approved.")
-    
-    # Mark the session as not available
         tutor_session.session.is_available = False
         tutor_session.session.save()
-
-    # Create a StudentSession for the student and tutor session
         student_session = StudentSession.objects.create(student=self.student, tutor_session=tutor_session)
-
-    # Mark the request as approved
         self.is_approved = True
         self.save()
-
         return student_session
 
-
-    def filter_unapproved_requests(self):
-        return RequestedStudentSession.objects.filter(is_approved=False)
-
     def save(self, *args, **kwargs):
-        if self.is_approved:
+        # Ensure we're not modifying an already approved request
+        if self.is_approved and 'is_approved' not in kwargs.get('update_fields', []):
             raise ValueError("Cannot modify an already approved request.")
         
-        # First save the object to get an ID before setting the ManyToMany field
+        # Perform the standard save operation
         super(RequestedStudentSession, self).save(*args, **kwargs)
 
-        # Now assign the ManyToMany relationship
-        tutor_sessions = TutorSession.objects.all()
-        for tutor_session in tutor_sessions:
-            if tutor_session.session.programming_language == self.session.programming_language and tutor_session.session.level == self.session.level and tutor_session.session.season == self.session.season and tutor_session.session.year == self.session.year:
-                self.available_tutor_sessions.add(tutor_session)
+        # Automatically populate available tutor sessions for a new request
+        if not self.is_approved:
+            eligible_tutor_sessions = TutorSession.objects.filter(
+                session__programming_language=self.session.programming_language,
+                session__level=self.session.level,
+                session__season=self.session.season,
+                session__year=self.session.year,
+            )
+            self.available_tutor_sessions.set(eligible_tutor_sessions)
 
-        # Save the object again after updating the ManyToMany field
-        super(RequestedStudentSession, self).save(*args, **kwargs)
 
     def __str__(self):
         status = "Approved" if self.is_approved else "Pending"
-        return f'Request by {self.student.user.get_full_name()} for {self.session} - {status}'
+        return f'Request by {self.student.user.full_name()} for {self.session} - {status}'
 
-    
+
 class StudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
     tutor_session = models.ForeignKey(TutorSession, on_delete=models.CASCADE, related_name='student_sessions')
@@ -313,16 +353,36 @@ class StudentSession(models.Model):
 
     class Meta:
         unique_together = ('student', 'tutor_session')
+        verbose_name = "Student Session"
+        verbose_name_plural = "Student Sessions"
 
     def save(self, *args, **kwargs):
         if not self.tutor_session.session.is_available:
-            raise ValueError("Cannot create a session for a student when the session is not available.")
+            raise ValueError("Cannot register a student for a session that is unavailable.")
         self.tutor_session.session.is_available = False
         self.tutor_session.session.save()
         super(StudentSession, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.student.user.get_full_name()} -> {self.tutor_session}'
+        return f'{self.student.user.full_name()} -> {self.tutor_session}'
+
+# class StudentSession(models.Model):
+#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
+#     tutor_session = models.ForeignKey(TutorSession, on_delete=models.CASCADE, related_name='student_sessions')
+#     registered_at = models.DateTimeField(auto_now_add=True)
+
+#     class Meta:
+#         unique_together = ('student', 'tutor_session')
+
+#     def save(self, *args, **kwargs):
+#         if not self.tutor_session.session.is_available:
+#             raise ValueError("Cannot create a session for a student when the session is not available.")
+#         self.tutor_session.session.is_available = False
+#         self.tutor_session.session.save()
+#         super(StudentSession, self).save(*args, **kwargs)
+
+#     def __str__(self):
+#         return f'{self.student.user.get_full_name()} -> {self.tutor_session}'
 
 class Invoice(models.Model):
     PAYMENT_STATUS_CHOICES = [
