@@ -499,7 +499,7 @@ def approve_session(request, request_id, tutor_session_id):
             requested_session.delete()
             path = reverse('pending_requests')
             return HttpResponseRedirect(path)
-
+        
 @login_required
 def student_pending_payments(request):
     """Display all pending payments for student lessons with tutors."""
