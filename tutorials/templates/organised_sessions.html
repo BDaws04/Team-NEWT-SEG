@@ -1,0 +1,79 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Organized Sessions</h1>
+    <p class="text-center">Here is a list of all sessions that have been organized.</p>
+
+    <!-- Table displaying organized sessions -->
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th>Tutor</th>
+                <th>Requested At</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in requests %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ request.student.user.get_full_name }}</td>
+                <td>{{ request.tutor_session.tutor }}</td>
+                <td>{{ request.registered_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <span class="badge 
+                        {% if request.status == 'Approved' %}
+                            bg-success
+                        {% elif request.status == 'Cancelled' %}
+                            bg-danger
+                        {% elif request.status == 'Awaiting Payment' %}
+                            bg-info
+                        {% endif %}">
+                        {{ request.status }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not requests %}
+    <p class="text-center">No organised sessions at this moment</p>
+    {% endif %}
+
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if requests.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ requests.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo; Previous</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo; Previous</span>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Page {{ requests.number }} of {{ requests.paginator.num_pages }}</span>
+            </li>
+
+            {% if requests.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ requests.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">Next &raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next &raquo;</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

@@ -309,23 +309,23 @@ class RequestedStudentSession(models.Model):
 
     
 class StudentSession(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
-    tutor_session = models.ForeignKey(TutorSession, on_delete=models.CASCADE, related_name='student_sessions')
-    registered_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Cancelled', 'Cancelled')], default='Pending')
-
-    class Meta:
-        unique_together = ('student', 'tutor_session')
-
-    def save(self, *args, **kwargs):
-        if not self.tutor_session.session.is_available:
-            raise ValueError("Cannot create a session for a student when the session is not available.")
-        self.tutor_session.session.is_available = False
-        self.tutor_session.session.save()
-        super(StudentSession, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return f'{self.student.user.get_full_name()} -> {self.tutor_session}'
+        student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
+        tutor_session = models.ForeignKey(TutorSession, on_delete=models.CASCADE, related_name='student_sessions')
+        registered_at = models.DateTimeField(auto_now_add=True)
+        status = models.CharField(max_length=20, choices=[('Paid', 'Paid'), ('Awaiting Payment', 'Awaiting Payment'), ('Cancelled', 'Cancelled')], default='Pending')
+    
+        class Meta:
+            unique_together = ('student', 'tutor_session')
+    
+        def save(self, *args, **kwargs):
+            if not self.tutor_session.session.is_available:
+                raise ValueError("Cannot create a session for a student when the session is not available.")
+            self.tutor_session.session.is_available = False
+            self.tutor_session.session.save()
+            super(StudentSession, self).save(*args, **kwargs)
+    
+        def __str__(self):
+            return f'{self.student.user.get_full_name()} -> {self.tutor_session}'
 
 class Invoice(models.Model):
     PAYMENT_STATUS_CHOICES = [

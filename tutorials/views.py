@@ -441,6 +441,18 @@ def approve_session(request, request_id):
             requested_session.delete()
             path = reverse('pending_requests')
             return HttpResponseRedirect(path)
+        
+@login_required
+def organised_sessions(request):
+    """Display all organised sessions for students and tutors."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    student_sessions = StudentSession.objects.all()
+    paginator = Paginator(student_sessions, 10)
+    page_number = request.GET.get('page')
+    student_sessions = paginator.get_page(page_number)
+    return render(request, 'organised_sessions.html', {'student_sessions': student_sessions})
 
 @login_required
 def student_pending_payments(request):
