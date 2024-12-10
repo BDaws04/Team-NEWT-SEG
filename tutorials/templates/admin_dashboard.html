@@ -37,7 +37,7 @@
             </div>
           </a>
         </div>
-        
+
         <div class="box">
           <a href="{% url 'student_sessions' %}" class="box-link">
             <div class="stats">
@@ -56,6 +56,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
     margin: 20px 0;
+    justify-content: center; /* Aligns all grid items centrally */
   }
 
   .box {
@@ -83,9 +84,11 @@
     margin-bottom: 15px;
   }
 
-  .stats p {
-    margin: 5px 0;
+  .box-container > .box:nth-child(5) {
+    grid-column: span 2; /* Make the 5th box span across the entire row */
+    justify-self: center; /* Center it horizontally in the grid */
   }
 </style>
+
 
 {% endblock %}
