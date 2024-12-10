@@ -20,6 +20,8 @@ from tutorials.forms import SessionForm
 from tutorials.models import ProgrammingLanguage, RequestedStudentSession
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import timedelta
 
 User = get_user_model()
 
@@ -381,13 +383,63 @@ def delete_tutor(request, tutor_id):
 
 @login_required
 def tutor_sessions_list(request):
+    """Display a paginated list of all tutors with sessions."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
     tutors = Tutor.objects.filter(tutor_sessions__isnull=False).distinct()  # Only include tutors with sessions
     return render(request, 'tutor_sessions_list.html', {'tutors': tutors})
 
 @login_required
 def tutor_session_detail(request, pk):
+    """Display the details of a specific tutor session."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
     tutor_session = get_object_or_404(TutorSession, id=pk)  # Use `pk` instead of `session_id`
-    return render(request, 'tutor_session_detail.html', {'session': tutor_session})  
+    return render(request, 'tutor_session_detail.html', {'session': tutor_session}) 
+
+@login_required
+def student_sessions(request):
+    """Display all sessions for a specific student."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    session_list = StudentSession.objects.all()
+
+    paginator = Paginator(session_list, 10)
+    page_number = request.GET.get('page')
+    sessions = paginator.get_page(page_number)
+    return render(request, 'student_sessions.html', {'sessions': sessions})
+
+@login_required
+def send_invoice(request, session_id):
+    """Send an invoice for a specific session."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    try:
+        student_session = StudentSession.objects.get(pk=session_id)
+        
+        student_session.status = 'Payment Pending'
+        student_session.save()
+        
+        invoice = Invoice.objects.create(
+            session=student_session,
+        )
+        invoice.save()
+        
+        return redirect('student_sessions')
+        
+    except StudentSession.DoesNotExist:
+        raise Http404(f"Could not find student session with primary key {session_id}")
+
+@login_required
+def remove_session(request, session_id):
+    """Remove a specific session."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
 
 @login_required
 def invoices(request):
@@ -421,10 +473,9 @@ def available_tutors(request, request_id):
         return render(request, 'available_tutors.html', context)
     
 @login_required
-def approve_session(request, request_id):
+def approve_session(request, request_id, tutor_session_id):
     """Approve a specific session request."""
     current_user = request.user
-    tutor_session = TutorSession.objects.get(pk=request_id)
     if current_user.role != 'ADMIN':
         return redirect('dashboard')
     try:
@@ -433,10 +484,17 @@ def approve_session(request, request_id):
         raise Http404(f"Could not find session request with primary key {request_id}")
     else:
         if request.method == "POST":
-            StudentSession.objects.create(
-                student=requested_session.student,
-                tutor_session=tutor_session,
-            )
+            try:
+                tutor_session = TutorSession.objects.get(pk=tutor_session_id)
+            except TutorSession.DoesNotExist:
+                raise Http404(f"Could not find tutor session with primary key {tutor_session_id}")
+            else:
+                tutor_session.session.is_available = True
+                tutor_session.session.save()
+                StudentSession.objects.create(
+                    student=requested_session.student,
+                    tutor_session=tutor_session,
+                )
 
             requested_session.delete()
             path = reverse('pending_requests')
