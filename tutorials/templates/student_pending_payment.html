@@ -5,6 +5,7 @@
 
     {% if pending_payments %}
     {% for pending_payment in pending_payments %}
+    {% if pending_payment.payment_status == 'PENDING' %}
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Invoice Details</h5>
@@ -33,14 +34,13 @@
                 <i class="fas fa-info-circle"></i> Please ensure you have made the payment before confirming below.
             </div>
 
-            <form method="POST">
+            <form method="post" action="{% url 'confirm_payment' pending_payment.id %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-check"></i> Confirm Payment Made
-                </button>
+                <button type="submit" class="btn btn-primary">Confirm Payment Made</button>
             </form>
         </div>
     </div>
+    {% endif %}
     {% endfor %}
     {% else %}
     <div class="alert alert-info text-center" role="alert">

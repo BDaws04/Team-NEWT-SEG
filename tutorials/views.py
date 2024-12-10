@@ -440,6 +440,14 @@ def remove_session(request, session_id):
     current_user = request.user
     if current_user.role != 'ADMIN':
         return redirect('dashboard')
+    try:
+        student_session = StudentSession.objects.get(pk=session_id)
+    except StudentSession.DoesNotExist:
+        raise Http404(f"Could not find student session with primary key {session_id}")
+    else:
+        student_session.delete()
+        path = reverse('student_sessions')
+        return HttpResponseRedirect(path)
 
 @login_required
 def invoices(request):
@@ -509,3 +517,16 @@ def student_pending_payments(request):
         return redirect('dashboard')
     pending_payments = Invoice.objects.filter(payment_status='PENDING', session__student=student)
     return render(request, 'student_pending_payment.html', {'pending_payments': pending_payments})
+
+@login_required
+def confirm_payment(request, invoice_id):
+    """Confirm a specific payment."""
+    current_user = request.user
+    if current_user.role != 'STUDENT':
+        return redirect('dashboard')
+    invoice = Invoice.objects.get(pk=invoice_id)
+    invoice.payment_status = 'PAID'
+    invoice.session.status = 'Approved'
+    invoice.session.save() # Need to save the student session after updating its status
+    invoice.save()
+    return redirect('student_pending_payments')
