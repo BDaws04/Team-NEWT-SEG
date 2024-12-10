@@ -5,7 +5,6 @@
   <div class="row">
     <div class="col-12">
       <h1>Welcome to your admin dashboard, {{ user.username }}</h1>
-
       <div class="box-container">
         <div class="box">
           <a href="{% url 'list_students' %}" class="box-link">
@@ -38,7 +37,6 @@
             </div>
           </a>
         </div>
-      </div>
 
       <div class="box">
         <a href="{% url 'organised_sessions' %}" class="box-link">
@@ -48,6 +46,14 @@
         </a>
       </div>
 
+        <div class="box">
+          <a href="{% url 'student_sessions' %}" class="box-link">
+            <div class="stats">
+              <h3>Student Sessions</h3>
+            </div>
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
