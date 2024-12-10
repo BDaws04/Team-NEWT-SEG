@@ -23,22 +23,22 @@ class Command(BaseCommand):
         self.faker = Faker()
 
     def handle(self, *args, **options):
+
         # StudentSession.objects.all().delete()
         # RequestedStudentSession.objects.all().delete()
         # TutorSession.objects.all().delete()
         # Session.objects.all().delete()
         # Student.objects.all().delete()
         # Tutor.objects.all().delete()
-        # User.objects.filter(role__in=[User.Roles.STUDENT, User.Roles.TUTOR]).delete()
 
+        self.create_required_users()
         # self.create_programming_languages()
         # self.seed_sessions()
         # self.create_tutors_and_students()
         # self.create_tutor_sessions()
-        self.create_requested_student_sessions() 
-        self.create_student_sessions()
-
-
+        # self.create_requested_student_sessions() 
+        # self.create_student_sessions()
+        
     def create_programming_languages(self):
         LANGUAGES = [
             'Python', 'Java', 'C++', 'JavaScript', 'Ruby', 'PHP', 'Go', 'Swift', 'Kotlin', 'Rust'
@@ -241,7 +241,47 @@ class Command(BaseCommand):
             tutor_session.delete()
             requested_session.delete()
 
-    
+    def create_required_users(self):
+        if not User.objects.filter(username="@johndoe").exists():
+            admin_user = User.objects.create_user(
+                username="@johndoe",
+                email="johndoe@example.com",
+                password=self.PASSWORD,
+                first_name="John",
+                last_name="Doe",
+                role=User.Roles.ADMIN,
+            )
+            print("Admin user @johndoe created.")
+        
+        if not User.objects.filter(username="@janedoe").exists():
+            tutor_user = User.objects.create_user(
+                username="@janedoe",
+                email="janedoe@example.com",
+                password=self.PASSWORD,
+                first_name="Jane",
+                last_name="Doe",
+                role=User.Roles.TUTOR,
+            )
+            tutor = Tutor.objects.create(user=tutor_user)
+            programming_languages = ProgrammingLanguage.objects.order_by('?')[:3]
+            tutor.expertise.set(programming_languages)
+            print(f"Tutor @janedoe created with expertise: {[lang.name for lang in programming_languages]}")
+        
+        if not User.objects.filter(username="@charlie").exists():
+            student_user = User.objects.create_user(
+                username="@charlie",
+                email="charlie@example.com",
+                password=self.PASSWORD,
+                first_name="Charlie",
+                last_name="Brown",
+                role=User.Roles.STUDENT,
+            )
+            student = Student.objects.create(user=student_user)
+            print("Student user @charlie created.")
+            
+                
+
+
 
 
 
