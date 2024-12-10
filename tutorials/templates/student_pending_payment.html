@@ -3,6 +3,7 @@
 <div class="container mt-5">
     <h1 class="text-center mb-4">Pending Invoice</h1>
 
+    {% if invoice %}
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Invoice Details</h5>
@@ -39,5 +40,10 @@
             </form>
         </div>
     </div>
+    {% else %}
+    <div class="alert alert-info text-center" role="alert">
+        You have no pending invoices at this time.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

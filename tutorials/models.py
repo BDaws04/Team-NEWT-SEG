@@ -312,6 +312,7 @@ class StudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
     tutor_session = models.ForeignKey(TutorSession, on_delete=models.CASCADE, related_name='student_sessions')
     registered_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Cancelled', 'Cancelled')], default='Pending')
 
     class Meta:
         unique_together = ('student', 'tutor_session')
@@ -334,8 +335,8 @@ class Invoice(models.Model):
         ('CANCELLED', 'Cancelled'),
     ]
 
-    requested_session = models.ForeignKey(
-        'RequestedStudentSession',
+    session = models.ForeignKey(
+        'StudentSession',
         on_delete=models.CASCADE,
         related_name='invoices',
         null=True,
@@ -360,8 +361,8 @@ class Invoice(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        if self.requested_session:
-            session = self.requested_session.session
+        if self.session:
+            session = self.session.session
             
             if session.duration_hours <= 1:
                 self.amount = Decimal('30.00')
@@ -371,7 +372,7 @@ class Invoice(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Invoice #{self.id} - {self.requested_session.student.user.get_full_name()} - {self.payment_status}"
+        return f"Invoice #{self.id} - {self.session.student.user.get_full_name()} - {self.payment_status}"
 
     def mark_as_paid(self):
         from django.utils import timezone

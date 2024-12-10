@@ -11,7 +11,7 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from tutorials.models import Student, Tutor, TutorSession, Invoice
+from tutorials.models import Student, Tutor, TutorSession, Invoice, StudentSession
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
@@ -371,8 +371,8 @@ def delete_tutor(request, tutor_id):
         return redirect('dashboard')
     try:
         tutor = Tutor.objects.get(pk=tutor_id)
-    except Student.DoesNotExist:
-        raise Http404(f"Count not find student with primary key {tutor_id}")
+    except Tutor.DoesNotExist:
+        raise Http404(f"Count not find tutor with primary key {tutor_id}")
     else:
         if request.method == "POST":
             tutor.delete()
@@ -421,6 +421,28 @@ def available_tutors(request, request_id):
         return render(request, 'available_tutors.html', context)
     
 @login_required
+def approve_session(request, request_id):
+    """Approve a specific session request."""
+    current_user = request.user
+    tutor_session = TutorSession.objects.get(pk=request_id)
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    try:
+        requested_session = RequestedStudentSession.objects.get(pk=request_id)
+    except RequestedStudentSession.DoesNotExist:
+        raise Http404(f"Could not find session request with primary key {request_id}")
+    else:
+        if request.method == "POST":
+            StudentSession.objects.create(
+                student=requested_session.student,
+                tutor_session=tutor_session,
+            )
+
+            requested_session.delete()
+            path = reverse('pending_requests')
+            return HttpResponseRedirect(path)
+
+@login_required
 def student_pending_payments(request):
     """Display all pending payments for student lessons with tutors."""
     current_user = request.user
@@ -428,4 +450,3 @@ def student_pending_payments(request):
         return redirect('dashboard')
     pending_payments = Invoice.objects.filter(payment_status='PENDING')
     return render(request, 'student_pending_payment.html', {'pending_payments': pending_payments})
-
