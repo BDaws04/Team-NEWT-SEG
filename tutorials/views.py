@@ -11,7 +11,7 @@ from django.views.generic.edit import FormView, UpdateView
 from django.urls import reverse
 from tutorials.forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from tutorials.helpers import login_prohibited
-from tutorials.models import Student, Tutor, TutorSession, Invoice
+from tutorials.models import Student, Tutor, TutorSession, Invoice, StudentSession
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
@@ -20,6 +20,8 @@ from tutorials.forms import SessionForm
 from tutorials.models import ProgrammingLanguage, RequestedStudentSession
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import timedelta
 
 User = get_user_model()
 
@@ -45,7 +47,7 @@ def request_session(request):
                 session = form.save()
 
                 # Get the related student profile
-                student = current_user.student_profile
+                student = Student.objects.get(user=current_user)
 
                 print(f"Student: {student}")
 
@@ -81,11 +83,11 @@ def request_session(request):
         if request.method == 'POST':
             form = SessionForm(request.POST)
             if form.is_valid():
-                # Save the session object
+                # Save the session objec
                 session = form.save()
 
                 # Get the related tutor profile
-                tutor = current_user.tutor_profile
+                tutor = Tutor.objects.get(user=current_user)
 
                 print(f"Tutor: {tutor}")
 
@@ -97,7 +99,6 @@ def request_session(request):
 
                 try:
                     tutor_session.full_clean()  # Validate the model
-                    tutor_session.update_student_sessions()
                     tutor_session.save()  # Save the object
                     print(f"Session saved with ID: {tutor_session.id}")
                     context['message'] = 'Session request has been received!'
@@ -372,8 +373,8 @@ def delete_tutor(request, tutor_id):
         return redirect('dashboard')
     try:
         tutor = Tutor.objects.get(pk=tutor_id)
-    except Student.DoesNotExist:
-        raise Http404(f"Count not find student with primary key {tutor_id}")
+    except Tutor.DoesNotExist:
+        raise Http404(f"Count not find tutor with primary key {tutor_id}")
     else:
         if request.method == "POST":
             tutor.delete()
@@ -382,13 +383,71 @@ def delete_tutor(request, tutor_id):
 
 @login_required
 def tutor_sessions_list(request):
+    """Display a paginated list of all tutors with sessions."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
     tutors = Tutor.objects.filter(tutor_sessions__isnull=False).distinct()  # Only include tutors with sessions
     return render(request, 'tutor_sessions_list.html', {'tutors': tutors})
 
 @login_required
 def tutor_session_detail(request, pk):
+    """Display the details of a specific tutor session."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
     tutor_session = get_object_or_404(TutorSession, id=pk)  # Use `pk` instead of `session_id`
-    return render(request, 'tutor_session_detail.html', {'session': tutor_session})  
+    return render(request, 'tutor_session_detail.html', {'session': tutor_session}) 
+
+@login_required
+def student_sessions(request):
+    """Display all sessions for a specific student."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    session_list = StudentSession.objects.all()
+
+    paginator = Paginator(session_list, 10)
+    page_number = request.GET.get('page')
+    sessions = paginator.get_page(page_number)
+    return render(request, 'student_sessions.html', {'sessions': sessions})
+
+@login_required
+def send_invoice(request, session_id):
+    """Send an invoice for a specific session."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    try:
+        student_session = StudentSession.objects.get(pk=session_id)
+        
+        student_session.status = 'Payment Pending'
+        student_session.save()
+        
+        invoice = Invoice.objects.create(
+            session=student_session,
+        )
+        invoice.save()
+        
+        return redirect('student_sessions')
+        
+    except StudentSession.DoesNotExist:
+        raise Http404(f"Could not find student session with primary key {session_id}")
+
+@login_required
+def remove_session(request, session_id):
+    """Remove a specific session."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    try:
+        student_session = StudentSession.objects.get(pk=session_id)
+    except StudentSession.DoesNotExist:
+        raise Http404(f"Could not find student session with primary key {session_id}")
+    else:
+        student_session.delete()
+        path = reverse('student_sessions')
+        return HttpResponseRedirect(path)
 
 @login_required
 def invoices(request):
@@ -422,11 +481,52 @@ def available_tutors(request, request_id):
         return render(request, 'available_tutors.html', context)
     
 @login_required
+def approve_session(request, request_id, tutor_session_id):
+    """Approve a specific session request."""
+    current_user = request.user
+    if current_user.role != 'ADMIN':
+        return redirect('dashboard')
+    try:
+        requested_session = RequestedStudentSession.objects.get(pk=request_id)
+    except RequestedStudentSession.DoesNotExist:
+        raise Http404(f"Could not find session request with primary key {request_id}")
+    else:
+        if request.method == "POST":
+            try:
+                tutor_session = TutorSession.objects.get(pk=tutor_session_id)
+            except TutorSession.DoesNotExist:
+                raise Http404(f"Could not find tutor session with primary key {tutor_session_id}")
+            else:
+                tutor_session.session.is_available = True
+                tutor_session.session.save()
+                StudentSession.objects.create(
+                    student=requested_session.student,
+                    tutor_session=tutor_session,
+                )
+
+            requested_session.delete()
+            path = reverse('pending_requests')
+            return HttpResponseRedirect(path)
+        
+@login_required
 def student_pending_payments(request):
     """Display all pending payments for student lessons with tutors."""
     current_user = request.user
+    student = Student.objects.get(user=current_user)
     if current_user.role != 'STUDENT':
         return redirect('dashboard')
-    pending_payments = Invoice.objects.filter(payment_status='PENDING')
+    pending_payments = Invoice.objects.filter(payment_status='PENDING', session__student=student)
     return render(request, 'student_pending_payment.html', {'pending_payments': pending_payments})
 
+@login_required
+def confirm_payment(request, invoice_id):
+    """Confirm a specific payment."""
+    current_user = request.user
+    if current_user.role != 'STUDENT':
+        return redirect('dashboard')
+    invoice = Invoice.objects.get(pk=invoice_id)
+    invoice.payment_status = 'PAID'
+    invoice.session.status = 'Approved'
+    invoice.session.save() # Need to save the student session after updating its status
+    invoice.save()
+    return redirect('student_pending_payments')

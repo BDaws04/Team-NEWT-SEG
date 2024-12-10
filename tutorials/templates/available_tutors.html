@@ -24,7 +24,11 @@
                 <td>{{ tutor.created_at|date:"Y-m-d H:i" }}</td>
                 <td>
                     {% if not tutor.session.is_approved %}
-                    <a href="{% url 'approve_session' request_id=request_id %}" class="btn btn-primary btn-sm">Approve Session</a>
+                    <form action="{% url 'approve_session' request_id=request_id tutor_session_id=tutor.id %}"
+                        method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-sm">Approve Session</button>
+                    </form>
                     {% endif %}
                 </td>
             </tr>

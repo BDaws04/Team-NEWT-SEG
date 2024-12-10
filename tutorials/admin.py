@@ -56,6 +56,7 @@ class StudentSessionAdmin(admin.ModelAdmin):
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ['requested_session', 'amount', 'created_at', 'due_date', 'payment_status']
-    search_fields = ['requested_session__student__user__username', 'requested_session__tutor__user__username']
-    list_filter = ['payment_status', 'created_at', 'due_date']
+    list_display = ['session', 'amount', 'created_at', 'payment_status']
+    search_fields = ['session__student__user__username', 'session__tutor__user__username']
+    list_filter = ['payment_status', 'created_at']
+

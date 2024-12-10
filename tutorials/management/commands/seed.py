@@ -47,6 +47,48 @@ class Command(BaseCommand):
             ProgrammingLanguage.objects.create(name=language)
         print("Programming languages seeded.")
 
+    def create_tutors_and_students(self):
+        """Create 5 tutors and 5 students with random data."""
+        print("Seeding tutors and students...")
+
+        # Create 5 tutors
+        for _ in range(self.TUTOR_COUNT):
+            self.create_random_tutor()
+
+        # Create 5 students
+        for _ in range(self.STUDENT_COUNT):
+            self.create_random_student()
+
+    def create_random_tutor(self):
+        """Create a random tutor with expertise in programming languages."""
+        user = self.User.objects.create_user(
+            username='@' + self.faker.unique.user_name(),
+            email=self.faker.unique.email(),
+            password='Password123',
+            first_name=self.faker.first_name(),
+            last_name=self.faker.last_name(),
+        )
+        tutor = Tutor.objects.create(user=user)
+
+        # Assign random programming languages to the tutor
+        languages = ProgrammingLanguage.objects.order_by('?')[:randint(1, 4)]
+        if languages:
+            tutor.expertise.add(*languages)
+            print(f"Tutor {user.username} assigned expertise: {[lang.name for lang in languages]}")
+
+    def create_random_student(self):
+        """Create a random student."""
+        user = self.User.objects.create_user(
+            username='@' + self.faker.unique.user_name(),
+            email=self.faker.unique.email(),
+            password='Password123',
+            first_name=self.faker.first_name(),
+            last_name=self.faker.last_name(),
+        )
+        Student.objects.create(user=user)
+        print(f"Student {user.username} created.")
+
+    
     def seed_sessions(self):
         TERM_START_DATES = {
             2024: {
