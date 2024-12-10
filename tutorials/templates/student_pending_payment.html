@@ -1,9 +1,10 @@
 {% extends 'base_content.html' %}
 {% block content %}
 <div class="container mt-5">
-    <h1 class="text-center mb-4">Pending Invoice</h1>
+    <h1 class="text-center mb-4">Pending Invoices</h1>
 
-    {% if invoice %}
+    {% if pending_payments %}
+    {% for pending_payment in pending_payments %}
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Invoice Details</h5>
@@ -12,19 +13,19 @@
             <table class="table">
                 <tr>
                     <th>Amount Due:</th>
-                    <td>${{ invoice.amount }}</td>
+                    <td>${{ pending_payment.amount }}</td>
                 </tr>
                 <tr>
                     <th>Due Date:</th>
-                    <td>{{ invoice.due_date }}</td>
+                    <td>{{ pending_payment.due_date }}</td>
                 </tr>
                 <tr>
                     <th>Tutor:</th>
-                    <td>{{ invoice.requested_session.tutor.user.full_name }}</td>
+                    <td>{{ pending_payment.session.tutor_session.tutor.user.full_name }}</td>
                 </tr>
                 <tr>
                     <th>Session:</th>
-                    <td>{{ invoice.requested_session.session }}</td>
+                    <td>{{ pending_payment.session.tutor_session.session }}</td>
                 </tr>
             </table>
 
@@ -40,6 +41,7 @@
             </form>
         </div>
     </div>
+    {% endfor %}
     {% else %}
     <div class="alert alert-info text-center" role="alert">
         You have no pending invoices at this time.

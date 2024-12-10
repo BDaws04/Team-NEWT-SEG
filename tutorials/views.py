@@ -504,7 +504,8 @@ def approve_session(request, request_id, tutor_session_id):
 def student_pending_payments(request):
     """Display all pending payments for student lessons with tutors."""
     current_user = request.user
+    student = Student.objects.get(user=current_user)
     if current_user.role != 'STUDENT':
         return redirect('dashboard')
-    pending_payments = Invoice.objects.filter(payment_status='PENDING')
+    pending_payments = Invoice.objects.filter(payment_status='PENDING', session__student=student)
     return render(request, 'student_pending_payment.html', {'pending_payments': pending_payments})
