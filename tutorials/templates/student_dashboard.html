@@ -24,12 +24,23 @@
         </div>
 
         <div class="box">
-          Box 3
+          <a href="{% url 'your_sessions' %}" class="box-link">
+            <div class="stats">
+                <h3>Your Sessions</h3>
+                <p>View and manage your scheduled sessions.</p>
+            </div>
+          </a>
         </div>
 
         <div class="box">
-          Box 4
-        </div>
+          <a href="{% url 'requested_sessions' %}" class="box-link">
+            <div class="stats">
+              <h3>Requested Sessions</h3>
+              <p>View all sessions you've requested.</p>
+            </div>
+          </a>
+        </div>        
+
       </div>
 
     </div>

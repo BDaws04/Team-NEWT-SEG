@@ -184,6 +184,7 @@ class Command(BaseCommand):
                 student=student,
                 session=session,
             )
+
             requested_session.save()
 
             print(f"Requested session created for {student.user.full_name()} and session {session}.")

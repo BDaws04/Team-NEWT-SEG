@@ -530,3 +530,20 @@ def confirm_payment(request, invoice_id):
     invoice.session.save() # Need to save the student session after updating its status
     invoice.save()
     return redirect('student_pending_payments')
+
+@login_required
+def your_sessions(request):
+    student_sessions = StudentSession.objects.filter(student=request.user.student_profile)
+    return render(request, 'your_sessions.html', {'student_sessions': student_sessions})
+
+@login_required
+def requested_sessions(request):
+    # Filter requested sessions for the current student
+    try:
+        student_profile = request.user.student_profile
+    except AttributeError:
+        return render(request, 'requested_sessions.html', {'requested_sessions': []})
+
+    requested_sessions = RequestedStudentSession.objects.filter(student=student_profile)
+    return render(request, 'requested_sessions.html', {'requested_sessions': requested_sessions})
+
