@@ -236,37 +236,18 @@ class TutorSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, null=True)
 
-    def __str__(self):
-        return f'Tutor: {self.tutor.user.get_full_name()} - Session: {self.session}'
+    class Meta:
+        unique_together = ('tutor', 'session')  # Ensure a tutor cannot be assigned to the same session multiple times
 
-    def assign_to_tutor(self, tutor, session):
-        self.tutor = tutor
-        self.session = session
-        self.save()
+    def __str__(self):
+        return f'Tutor: {self.tutor.user.full_name()} - Session: {self.session}'
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        
-        student_sessions = RequestedStudentSession.objects.filter(
-            is_approved=False,
-            session__programming_language=self.session.programming_language,
-            session__level=self.session.level,
-            session__season=self.session.season,
-            session__year=self.session.year
-        )
-
-        for student_session in student_sessions:
-            student_session.available_tutor_sessions.add(self)
-            student_session.save()
-    
-            if student_session.session.programming_language == self.session.programming_language and \
-               student_session.session.level == self.session.level and \
-               student_session.session.season == self.session.season and \
-               student_session.session.year == self.session.year:
-                
-                student_session.available_tutor_sessions.add(self)
-                student_session.save()
+        # Prevent duplicate entries
+        if not self.pk and TutorSession.objects.filter(tutor=self.tutor, session=self.session).exists():
+            raise ValueError(f"A TutorSession already exists for tutor '{self.tutor}' and session '{self.session}'.")
         super(TutorSession, self).save(*args, **kwargs)
+
 
 
 # class RequestedStudentSession(models.Model):
