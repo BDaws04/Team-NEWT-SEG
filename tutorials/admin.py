@@ -50,9 +50,9 @@ class RequestedStudentSessionAdmin(admin.ModelAdmin):
 
 @admin.register(StudentSession)
 class StudentSessionAdmin(admin.ModelAdmin):
-    list_display = ['student', 'tutor_session', 'registered_at']
-    search_fields = ['student__user__username', 'tutor_session__session__programming_language__name']
-    list_filter = ['registered_at']
+    list_display = ('student', 'tutor_session', 'status', 'registered_at')
+    search_fields = ('student__user__username', 'tutor_session__session__programming_language__name')
+    list_filter = ('status',)
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):

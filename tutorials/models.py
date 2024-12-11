@@ -237,61 +237,15 @@ class TutorSession(models.Model):
     notes = models.TextField(blank=True, null=True)
 
     class Meta:
-        unique_together = ('tutor', 'session')  # Ensure a tutor cannot be assigned to the same session multiple times
+        unique_together = ('tutor', 'session') 
 
     def __str__(self):
         return f'Tutor: {self.tutor.user.full_name()} - Session: {self.session}'
 
     def save(self, *args, **kwargs):
-        # Prevent duplicate entries
         if not self.pk and TutorSession.objects.filter(tutor=self.tutor, session=self.session).exists():
             raise ValueError(f"A TutorSession already exists for tutor '{self.tutor}' and session '{self.session}'.")
         super(TutorSession, self).save(*args, **kwargs)
-
-
-
-# class RequestedStudentSession(models.Model):
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='requested_sessions')
-#     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='requests')
-#     requested_at = models.DateTimeField(auto_now_add=True)
-#     is_approved = models.BooleanField(default=False, help_text="Indicates if the session request is approved")
-#     available_tutor_sessions = models.ManyToManyField('TutorSession', related_name='requested_sessions', blank=True)
-
-#     def approve_request(self, tutor_session):
-#         if self.is_approved or not tutor_session.session.is_available:
-#             raise ValueError("Cannot approve a request for a session that is not available or already approved.")
-    
-#         tutor_session.session.is_available = False
-#         tutor_session.session.save()
-
-    
-#         student_session = StudentSession.objects.create(student=self.student, tutor_session=tutor_session)
-
-   
-#         self.is_approved = True
-#         self.save()
-
-#         return student_session
-
-#     def filter_unapproved_requests(self):
-#         return RequestedStudentSession.objects.filter(is_approved=False)
-
-#     def save(self, *args, **kwargs):
-#         if self.is_approved:
-#             raise ValueError("Cannot modify an already approved request.")
-        
-#         super(RequestedStudentSession, self).save(*args, **kwargs)
-
-#         tutor_sessions = TutorSession.objects.all()
-#         for tutor_session in tutor_sessions:
-#             if tutor_session.session.programming_language == self.session.programming_language and tutor_session.session.level == self.session.level and tutor_session.session.season == self.session.season and tutor_session.session.year == self.session.year:
-#                 self.available_tutor_sessions.add(tutor_session)
-
-#         super(RequestedStudentSession, self).save(*args, **kwargs)
-
-#     def __str__(self):
-#         status = "Approved" if self.is_approved else "Pending"
-#         return f'Request by {self.student.user.get_full_name()} for {self.session} - {status}'
 
 class RequestedStudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='requested_sessions')
@@ -306,34 +260,24 @@ class RequestedStudentSession(models.Model):
         verbose_name = "Requested Student Session"
         verbose_name_plural = "Requested Student Sessions"
 
-    def approve_request(self, tutor_session):
-        if self.is_approved or not tutor_session.session.is_available:
-            raise ValueError("Cannot approve a request for a session that is not available or already approved.")
-        tutor_session.session.is_available = False
-        tutor_session.session.save()
-        student_session = StudentSession.objects.create(student=self.student, tutor_session=tutor_session)
-        self.is_approved = True
-        self.save()
-        return student_session
-
     def save(self, *args, **kwargs):
-        # Ensure we're not modifying an already approved request
         if self.is_approved and 'is_approved' not in kwargs.get('update_fields', []):
             raise ValueError("Cannot modify an already approved request.")
-        
-        # Perform the standard save operation
+
+       
         super(RequestedStudentSession, self).save(*args, **kwargs)
 
-        # Automatically populate available tutor sessions for a new request
         if not self.is_approved:
-            eligible_tutor_sessions = TutorSession.objects.filter(
-                session__programming_language=self.session.programming_language,
-                session__level=self.session.level,
-                session__season=self.session.season,
-                session__year=self.session.year,
-            )
-            self.available_tutor_sessions.set(eligible_tutor_sessions)
+           
+            eligible_tutor_sessions = TutorSession.objects.filter(session=self.session)
+            if eligible_tutor_sessions.exists():
+                print(f"Populating available tutor sessions for {self}: {eligible_tutor_sessions}")
+            else:
+                print(f"No available tutor sessions found for session '{self.session}'.")
 
+            
+            self.available_tutor_sessions.set(eligible_tutor_sessions)
+        super(RequestedStudentSession, self).save(*args, **kwargs)
 
     def __str__(self):
         status = "Approved" if self.is_approved else "Pending"
@@ -361,24 +305,6 @@ class StudentSession(models.Model):
 
     def __str__(self):
         return f'{self.student.user.full_name()} -> {self.tutor_session}'
-
-# class StudentSession(models.Model):
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
-#     tutor_session = models.ForeignKey(TutorSession, on_delete=models.CASCADE, related_name='student_sessions')
-#     registered_at = models.DateTimeField(auto_now_add=True)
-
-#     class Meta:
-#         unique_together = ('student', 'tutor_session')
-
-#     def save(self, *args, **kwargs):
-#         if not self.tutor_session.session.is_available:
-#             raise ValueError("Cannot create a session for a student when the session is not available.")
-#         self.tutor_session.session.is_available = False
-#         self.tutor_session.session.save()
-#         super(StudentSession, self).save(*args, **kwargs)
-
-#     def __str__(self):
-#         return f'{self.student.user.get_full_name()} -> {self.tutor_session}'
 
 class Invoice(models.Model):
     PAYMENT_STATUS_CHOICES = [
@@ -424,7 +350,6 @@ class Invoice(models.Model):
             elif session.duration_hours <= 2:
                 self.amount = Decimal('50.00')
                 
-            # Set default due date if not provided
             if not self.due_date:
                 self.due_date = timezone.now().date() + timedelta(days=30)  # Due in 30 days
                 
@@ -439,47 +364,4 @@ class Invoice(models.Model):
         self.payment_date = timezone.now().date()
         self.save()
 
-    """
-    class Session(models.Model):
-    SEASONS = [
-        ('Fall', 'Fall'),
-        ('Spring', 'Spring'),
-        ('Summer', 'Summer'),
-    ]
-    programming_language = models.ForeignKey(
-        'ProgrammingLanguage',
-        on_delete=models.CASCADE,
-        related_name='sessions',
-        default=1, 
-        help_text="Select the programming language for the session"
-    )
-    tutor = models.ForeignKey('Tutor', on_delete=models.CASCADE, related_name='sessions')
-    level = models.CharField(max_length=20, choices=[
-        ('beginner', 'Beginner'),
-        ('intermediate', 'Intermediate'),
-        ('advanced', 'Advanced'),
-    ])
-    season = models.CharField(
-        max_length=20,
-        choices=SEASONS,
-        default='Fall',
-        help_text="Select the season for the session"
-    )
-    frequency = models.CharField(max_length=20, choices=[('Weekly','Weekly'),('Bi-Weekly','Bi-Weekly')], default='Weekly')
-    year = models.PositiveIntegerField(help_text="Enter the year (e.g., 2024)",default=2024)
-    start_time = models.DateTimeField(default=now)
-    end_time = models.DateTimeField(default=default_end_time)
-    is_availble = models.BooleanField(default=True, help_text="Indicates if the session is available for registration")
-
-    def save(self, *args, **kwargs):
-        if self.start_time >= self.end_time:
-            raise ValueError("Session start time must be earlier than end time.")
-        
-        if self.end_time < now():
-            self.is_availble = False
-        
-        super(Session, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return f'{self.programming_language.name} ({self.level}) - {self.season} {self.year} - {self.tutor.user.get_full_name()} - {self.frequency}'
-    """
+    

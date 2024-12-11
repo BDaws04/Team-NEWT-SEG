@@ -28,7 +28,7 @@ class Command(BaseCommand):
         self.seed_sessions()
         self.create_tutors_and_students()
         self.create_tutor_sessions()
-        self.create_requested_student_sessions() 
+        self.create_requested_student_sessions()
         self.create_student_sessions()
         
     def create_programming_languages(self):
@@ -173,30 +173,22 @@ class Command(BaseCommand):
         students = Student.objects.all()
         sessions = Session.objects.all()
 
-        for _ in range(self.REQ_STUDENT_SESSION_COUNT):  
+        for _ in range(self.REQ_STUDENT_SESSION_COUNT):
             student = choice(students)
             session = choice(sessions)
 
-            
             if RequestedStudentSession.objects.filter(student=student, session=session).exists():
                 continue
 
-           
-            requested_session = RequestedStudentSession.objects.create(
+            requested_session = RequestedStudentSession(
                 student=student,
                 session=session,
             )
 
-           
-            eligible_tutor_sessions = TutorSession.objects.filter(
-                session__programming_language=session.programming_language,
-                session__level=session.level,
-                session__season=session.season,
-                session__year=session.year,
-            )
-            requested_session.available_tutor_sessions.set(eligible_tutor_sessions)
+            requested_session.save()
 
-            # print(f"RequestedStudentSession created for student {student.user.username} and session {session.programming_language.name}.")
+            print(f"Requested session created for {student.user.full_name()} and session {session}.")
+
 
 
     def create_student_sessions(self):
@@ -235,7 +227,7 @@ class Command(BaseCommand):
             tutor_session.session.is_available = False
             tutor_session.session.save()
 
-            tutor_session.delete()
+            # tutor_session.delete()
             requested_session.delete()
 
     def create_required_users(self):
