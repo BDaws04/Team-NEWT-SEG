@@ -23,8 +23,8 @@ class Command(BaseCommand):
         self.faker = Faker()
 
     def handle(self, *args, **options):
-        self.create_required_users()
         self.create_programming_languages()
+        self.create_required_users()
         self.seed_sessions()
         self.create_tutors_and_students()
         self.create_tutor_sessions()
@@ -36,23 +36,21 @@ class Command(BaseCommand):
             'Python', 'Java', 'C++', 'JavaScript', 'Ruby', 'PHP', 'Go', 'Swift', 'Kotlin', 'Rust'
         ]
         for language in LANGUAGES:
-            ProgrammingLanguage.objects.create(name=language)
-        print("Programming languages seeded.")
+            # Check if the language already exists before creating
+            if not ProgrammingLanguage.objects.filter(name=language).exists():
+                ProgrammingLanguage.objects.create(name=language)
+                print(f"Programming language '{language}' seeded.")
+            else:
+                print(f"Programming language '{language}' already exists.")
 
     def create_tutors_and_students(self):
-        """Create 5 tutors and 5 students with random data."""
-        print("Seeding tutors and students...")
-
-        # Create 5 tutors
         for _ in range(self.TUTOR_COUNT):
             self.create_random_tutor()
 
-        # Create 5 students
         for _ in range(self.STUDENT_COUNT):
             self.create_random_student()
 
     def create_random_tutor(self):
-        """Create a random tutor with expertise in programming languages."""
         user = self.User.objects.create_user(
             username='@' + self.faker.unique.user_name(),
             email=self.faker.unique.email(),
@@ -66,10 +64,8 @@ class Command(BaseCommand):
         languages = ProgrammingLanguage.objects.order_by('?')[:randint(1, 4)]
         if languages:
             tutor.expertise.add(*languages)
-            print(f"Tutor {user.username} assigned expertise: {[lang.name for lang in languages]}")
 
     def create_random_student(self):
-        """Create a random student."""
         user = self.User.objects.create_user(
             username='@' + self.faker.unique.user_name(),
             email=self.faker.unique.email(),
@@ -78,7 +74,6 @@ class Command(BaseCommand):
             last_name=self.faker.last_name(),
         )
         Student.objects.create(user=user)
-        print(f"Student {user.username} created.")
 
     
     def seed_sessions(self):
@@ -149,7 +144,7 @@ class Command(BaseCommand):
                 role=User.Roles.STUDENT,
             )
             Student.objects.create(user=user)
-            print(f"Student {user.username} created.")
+            # print(f"Student {user.username} created.")
 
     def create_tutor_sessions(self):
         tutors = Tutor.objects.prefetch_related('expertise').all()
@@ -158,11 +153,21 @@ class Command(BaseCommand):
         for _ in range(self.TUTOR_SESSION_COUNT):
             tutor = choice(tutors)
             eligible_sessions = sessions.filter(programming_language__in=tutor.expertise.all())
+            
             if not eligible_sessions.exists():
                 continue
+            
             session = choice(eligible_sessions)
+
+            # Check if the TutorSession already exists
+            if TutorSession.objects.filter(tutor=tutor, session=session).exists():
+                print(f"TutorSession for tutor {tutor.user.username} and session {session.programming_language.name} already exists. Skipping.")
+                continue
+            
             TutorSession.objects.create(tutor=tutor, session=session)
-            # print(f"TutorSession created for tutor {tutor.user.username} and session {session.programming_language.name}.")
+            print(f"TutorSession created for tutor {tutor.user.username} and session {session.programming_language.name}.")
+
+
 
     def create_requested_student_sessions(self):
         students = Student.objects.all()
@@ -271,73 +276,3 @@ class Command(BaseCommand):
             student = Student.objects.create(user=student_user)
             print("Student user @charlie created.")
             
-                
-
-
-
-
-
-    # def create_student_sessions(self):
-    #     students = Student.objects.all()
-    #     tutor_sessions = TutorSession.objects.all()
-
-    #     # Create requested student sessions
-    #     for _ in range(self.STUDENT_SESSION_COUNT):
-    #         student = choice(students)
-    #         session = choice(Session.objects.all())
-
-    #         # Ensure no duplicate requests for the same language, year, and term
-    #         if RequestedStudentSession.objects.filter(
-    #             student=student,
-    #             session__programming_language=session.programming_language,
-    #             session__year=session.year,
-    #             session__season=session.season
-    #         ).exists():
-    #             continue
-
-    #         requested_session = RequestedStudentSession.objects.create(
-    #             student=student,
-    #             session=session,
-    #         )
-
-    #         # Assign eligible tutor sessions to the request
-    #         eligible_tutor_sessions = tutor_sessions.filter(session=session)
-    #         if eligible_tutor_sessions.exists():
-    #             requested_session.available_tutor_sessions.set(eligible_tutor_sessions)
-
-    #         print(f"RequestedStudentSession created for {student.user.username} and session {session.programming_language.name}.")
-
-    #     # Approve requested sessions
-    #     for _ in range(self.APPROVED_SESSION_COUNT):
-    #         student = choice(students)
-    #         matching_requests = RequestedStudentSession.objects.filter(
-    #             student=student,
-    #             is_approved=False
-    #         ).select_related('session').prefetch_related('available_tutor_sessions')
-
-    #         if not matching_requests.exists():
-    #             continue
-
-    #         requested_session = choice(matching_requests)
-    #         eligible_tutor_sessions = requested_session.available_tutor_sessions.all()
-
-    #         if not eligible_tutor_sessions.exists():
-    #             continue
-
-    #         tutor_session = choice(eligible_tutor_sessions)
-
-    #         # Check if the student is already enrolled in the same language, year, and term
-    #         if StudentSession.objects.filter(
-    #             student=student,
-    #             tutor_session__session__programming_language=requested_session.session.programming_language,
-    #             tutor_session__session__year=requested_session.session.year,
-    #             tutor_session__session__season=requested_session.session.season
-    #         ).exists():
-    #             continue
-
-    #         # Approve the session
-    #         StudentSession.objects.create(student=student, tutor_session=tutor_session)
-    #         requested_session.is_approved = True
-    #         requested_session.save()
-
-    #         print(f"Approved session created for {student.user.username} and tutor {tutor_session.tutor.user.username}.")
