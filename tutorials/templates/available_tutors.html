@@ -24,8 +24,7 @@
                 <td>{{ tutor.created_at|date:"Y-m-d H:i" }}</td>
                 <td>
                     {% if not tutor.session.is_approved %}
-                    <form action="{% url 'approve_session' request_id=request_id tutor_session_id=tutor.id %}"
-                        method="post">
+                    <form action="{% url 'approve_session' request_id=request_id tutor_session_id=tutor.id %}" method="post">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-primary btn-sm">Approve Session</button>
                     </form>
@@ -72,5 +71,10 @@
             {% endif %}
         </ul>
     </nav>
+
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+    </div>
 </div>
 {% endblock %}
