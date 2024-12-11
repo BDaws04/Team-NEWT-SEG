@@ -24,14 +24,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        StudentSession.objects.all().delete()
-        RequestedStudentSession.objects.all().delete()
-        TutorSession.objects.all().delete()
-        Session.objects.all().delete()
-        Student.objects.all().delete()
-        Tutor.objects.all().delete()
-
-        # self.create_required_users()
+        self.create_required_users()
         self.create_programming_languages()
         self.seed_sessions()
         self.create_tutors_and_students()
