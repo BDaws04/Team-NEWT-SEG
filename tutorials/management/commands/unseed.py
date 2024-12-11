@@ -13,3 +13,6 @@ class Command(BaseCommand):
         Session.objects.all().delete()
         Student.objects.all().delete()
         Tutor.objects.all().delete()
+        ProgrammingLanguage.objects.all().delete()
+        User.objects.all().delete()
+
