@@ -49,7 +49,7 @@ urlpatterns = [
     path('student-pending-payments/confirm-payment/<int:invoice_id>/', views.confirm_payment, name='confirm_payment'),
     path('your-sessions/', views.your_sessions, name='your_sessions'),
     path('your-tutor-sessions/', views.your_tutor_sessions, name='your_tutor_sessions'),
-     path('session/<int:session_id>/', views.session_details, name='session_details'),
+    path('session/<int:session_id>/', views.session_details, name='session_details'),
     path('requested-sessions/', views.requested_sessions, name='requested_sessions'),
 
 ]
