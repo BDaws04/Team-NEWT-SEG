@@ -325,35 +325,51 @@ def list_pending_requests(request):
     
 @login_required
 def list_tutors(request):
-    """Display a paginated list of all users who are students."""
+    """Display a paginated and sortable list of all tutors."""
     current_user = request.user
     if current_user.role != 'ADMIN':
         return redirect('dashboard')
-    tutor_list = Tutor.objects.all()
-    
+
+    # Get sort order from query parameters, default to ascending
+    sort_order = request.GET.get('sort', 'asc')  
+
+    # Fetch the tutor list and apply sorting based on the sort_order
+    tutor_list = Tutor.objects.all().select_related('user')
+
+    if sort_order == 'asc':
+        tutor_list = tutor_list.order_by('user__first_name')
+    else:
+        tutor_list = tutor_list.order_by('-user__first_name')
+
+    # Paginate the tutors
     paginator = Paginator(tutor_list, 10)
     page_number = request.GET.get('page')
     tutors = paginator.get_page(page_number)
 
-    return render(request, 'list_tutors.html', {'tutors': tutors})
+    # Render the template with tutors and sort order
+    return render(request, 'list_tutors.html', {'tutors': tutors, 'sort_order': sort_order})
+
     
 @login_required
 def list_students(request):
-    """Display a paginated list of all users who are students."""
+    """Display a paginated and sortable list of all students."""
     current_user = request.user
     if current_user.role != 'ADMIN':
         return redirect('dashboard')  # Redirect non-admin users to their dashboard
 
-    # Get all students
-    students_list = Student.objects.all()
-    
-    # Implement pagination with 10 students per page
-    paginator = Paginator(students_list, 10)  # 10 students per page
-    page_number = request.GET.get('page')  # Get the current page number from the query params
-    students = paginator.get_page(page_number)  # Get the students for the current page
+    sort_order = request.GET.get('sort', 'asc')  # Default sort order is ascending
+    students_list = Student.objects.all().select_related('user')
 
-    # Render the template with paginated students
-    return render(request, 'list_students.html', {'students': students})
+    if sort_order == 'asc':
+        students_list = students_list.order_by('user__first_name')
+    else:
+        students_list = students_list.order_by('-user__first_name')
+
+    paginator = Paginator(students_list, 10)
+    page_number = request.GET.get('page')
+    students = paginator.get_page(page_number)
+
+    return render(request, 'list_students.html', {'students': students, 'sort_order': sort_order})
 
 @login_required
 def student_detail(request, student_id):

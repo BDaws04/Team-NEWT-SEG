@@ -1,16 +1,16 @@
 {% extends 'base_content.html' %}
 {% block content %}
 <div class="container mt-5">
-    <!-- Profile Card -->
+
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow-lg">
                 <div class="row g-0">
-                    <!-- Profile Image -->
+
                     <div class="col-md-4 text-center bg-light p-4 d-flex align-items-center justify-content-center">
                         <img src="{{ tutor.user.gravatar }}" alt="Gravatar of {{ tutor.user.username }}" class="img-fluid rounded-circle shadow" style="max-width: 150px;">
                     </div>
-                    <!-- Profile Details -->
+
                     <div class="col-md-8">
                         <div class="card-body">
                             <h1 class="card-title">{{ tutor.user.full_name }}</h1>
@@ -18,11 +18,11 @@
                             <p class="card-text"><strong>Email:</strong> {{ tutor.user.email }}</p>
                         </div>
                         <div class="card-footer d-flex justify-content-between">
-                            <!-- Back Button -->
+             
                             <a href="{% url 'list_tutors' %}" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left"></i> Back to Tutor List
                             </a>
-                            <!-- Delete Button -->
+  
                             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                 <i class="bi bi-trash"></i> Delete Tutor
                             </button>
@@ -34,7 +34,7 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">

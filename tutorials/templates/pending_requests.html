@@ -4,7 +4,7 @@
     <h1 class="text-center mb-4">Requested Student Sessions</h1>
     <p class="text-center">Here is a list of all requested student sessions.</p>
 
-    <!-- Filters -->
+
     <form method="get" class="mb-4 d-flex justify-content-between">
         <div class="form-group me-2">
             <label for="level">Filter by Level:</label>
@@ -39,7 +39,6 @@
         </div>
     </form>
 
-    <!-- Table displaying session requests -->
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
             <tr>
@@ -79,7 +78,6 @@
     <p class="text-center">No session requests found.</p>
     {% endif %}
 
-    <!-- Pagination Controls -->
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
             {% if requests.has_previous %}
