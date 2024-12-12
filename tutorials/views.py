@@ -422,11 +422,17 @@ def send_invoice(request, session_id):
         student_session = StudentSession.objects.get(pk=session_id)
         
         student_session.status = 'Payment Pending'
-        student_session.save()
+        try:
+            student_session.save()
+        except ValueError as e:
+            print(f"Error saving StudentSession: {e}")
+            messages.error(request, str(e))
+            return redirect('student_sessions')
         
         invoice = Invoice.objects.create(
             session=student_session,
         )
+        
         invoice.save()
         
         return redirect('student_sessions')

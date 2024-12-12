@@ -296,9 +296,6 @@ class StudentSession(models.Model):
         verbose_name_plural = "Student Sessions"
 
     def save(self, *args, **kwargs):
-        if not self.tutor_session.session.is_available:
-            raise ValueError("Cannot create a session for a student when the session is not available.")
-            raise ValueError("Cannot register a student for a session that is unavailable.")
         self.tutor_session.session.is_available = False
         self.tutor_session.session.save()
         super(StudentSession, self).save(*args, **kwargs)
