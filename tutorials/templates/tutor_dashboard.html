@@ -8,28 +8,18 @@
     <div class="col-12">
       <h1>Welcome to your tutor dashboard, {{ user.username }}</h1>
 
-      <div class="box-container">
-        <div class="box">
-          <a href="{% url 'request_session' %}" class="box-link">
-            <div class="stats">
-              <h3>Request to teach a Session</h3>
-            </div>
+      <div class="row justify-content-center">
+        <div class="col-md-4 mb-4">
+          <a href="{% url 'request_session' %}" class="btn btn-success btn-lg w-100 shadow d-flex align-items-center justify-content-center">
+            <i class="bi bi-plus-circle-fill me-2"></i> Request to teach a Session
           </a>
         </div>
 
-        <div class="box">
-          Box 2
+        <div class="col-md-4 mb-4">
+          <a href="{% url 'your_tutor_sessions' %}" class="btn btn-success btn-lg w-100 shadow d-flex align-items-center justify-content-center">
+            <i class="bi bi-calendar-check-fill me-2"></i> Your Sessions
+          </a>
         </div>
-
-        <div class="box">
-          Box 3
-        </div>
-
-        <div class="box">
-          Box 4
-        </div>
-      </div>
-
     </div>
   </div>
 </div>

@@ -29,7 +29,7 @@
                     <form action="{% url 'send_invoice' session.id %}" method="post">
                         {% csrf_token %}
                         {% if session.status == 'Send Invoice' %}
-                        <button type="submit" class="btn btn-success btn-sm">Send Invoice</button>
+                        <button type="submit" class="btn btn-secondary btn-sm">Send Invoice</button>
                         {% else %}
                         <button type="submit" class="btn btn-secondary btn-sm" disabled>Invoice Sent</button>
                         {% endif %}

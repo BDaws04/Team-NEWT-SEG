@@ -328,3 +328,26 @@ h3.profile-title {
 .row-cols-md-3 {
   gap: 20px;
 }
+
+
+.card {
+  border-radius: 15px;
+  overflow: hidden;
+}
+.card-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+.card-footer {
+  background-color: #f8f9fa;
+}
+.img-fluid {
+  max-width: 150px;
+  border: 3px solid #007bff;
+}
+
+.table td .btn {
+  padding: 5px 10px;
+  font-size: 0.875rem; /* Adjust font size */
+  height: auto; /* Reset any conflicting height rules */
+}

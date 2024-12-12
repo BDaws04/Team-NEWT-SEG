@@ -533,7 +533,15 @@ def confirm_payment(request, invoice_id):
 
 @login_required
 def your_sessions(request):
-    student_sessions = StudentSession.objects.filter(student=request.user.student_profile)
+    # Check if the user has a student profile
+    try:
+        student_profile = request.user.student_profile
+    except AttributeError:
+        raise Http404("You do not have a student profile.")
+
+    # Fetch the sessions for the student
+    student_sessions = StudentSession.objects.filter(student=student_profile)
+
     return render(request, 'your_sessions.html', {'student_sessions': student_sessions})
 
 @login_required
@@ -547,3 +555,20 @@ def requested_sessions(request):
     requested_sessions = RequestedStudentSession.objects.filter(student=student_profile)
     return render(request, 'requested_sessions.html', {'requested_sessions': requested_sessions})
 
+@login_required
+def your_tutor_sessions(request):
+    # Check if the user has a tutor profile
+    try:
+        tutor_profile = request.user.tutor_profile
+    except AttributeError:
+        raise Http404("You do not have a tutor profile.")
+
+    # Fetch the sessions for the tutor
+    tutor_sessions = TutorSession.objects.filter(tutor=tutor_profile)
+
+    return render(request, 'your_tutor_sessions.html', {'tutor_sessions': tutor_sessions})
+
+@login_required
+def session_details(request, session_id):
+    tutor_session = get_object_or_404(TutorSession, id=session_id)
+    return render(request, 'session_details.html', {'tutor_session': tutor_session})
