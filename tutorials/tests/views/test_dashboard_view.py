@@ -34,15 +34,18 @@ class DashboardViewTestCase(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'student_dashboard.html')
+        self.assertEqual(response.context['user'], self.student_user)
 
     def test_get_dashboard_for_tutor(self):
         self.client.login(username=self.tutor_user.username, password='Password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'tutor_dashboard.html')
+        self.assertEqual(response.context['user'], self.tutor_user)
 
     def test_get_dashboard_for_admin(self):
         self.client.login(username=self.admin_user.username, password='Password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'admin_dashboard.html')
+        self.assertEqual(response.context['user'], self.admin_user)

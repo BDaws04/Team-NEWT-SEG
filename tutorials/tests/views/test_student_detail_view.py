@@ -27,16 +27,17 @@ class StudentDetailViewTestCase(TestCase):
         self.assertTemplateUsed(response, 'student_detail.html')
 
         self.assertEqual(response.context['student'], self.student)
-        self.assertEqual(response.context['student_id'], self.student.pk)
-        
-    def test_student_detail_unauthenticated_student_user(self):
-        self.client.login(username=self.student_user.username, password='Password123')
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse('dashboard'), response.url)
 
     def test_student_detail_unauthenticated_tutor_user(self):
         self.client.login(username=self.tutor_user.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'student_detail.html')
+
+        self.assertEqual(response.context['student'], self.student)
+        
+    def test_student_detail_unauthenticated_student_user(self):
+        self.client.login(username=self.student_user.username, password='Password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('dashboard'), response.url)

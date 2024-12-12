@@ -434,24 +434,6 @@ def delete_tutor(request, tutor_id):
             return HttpResponseRedirect(path)
 
 @login_required
-def tutor_sessions_list(request):
-    """Display a paginated list of all tutors with sessions."""
-    current_user = request.user
-    if current_user.role != 'ADMIN':
-        return redirect('dashboard')
-    tutors = Tutor.objects.filter(tutor_sessions__isnull=False).distinct()  # Only include tutors with sessions
-    return render(request, 'tutor_sessions_list.html', {'tutors': tutors})
-
-@login_required
-def tutor_session_detail(request, pk):
-    """Display the details of a specific tutor session."""
-    current_user = request.user
-    if current_user.role != 'ADMIN':
-        return redirect('dashboard')
-    tutor_session = get_object_or_404(TutorSession, id=pk)  # Use `pk` instead of `session_id`
-    return render(request, 'tutor_session_detail.html', {'session': tutor_session}) 
-
-@login_required
 def student_sessions(request):
     """Display all sessions for a specific student."""
     current_user = request.user
@@ -571,11 +553,25 @@ def approve_session(request, request_id, tutor_session_id):
 def student_pending_payments(request):
     """Display all pending payments for student lessons with tutors."""
     current_user = request.user
-    student = Student.objects.get(user=current_user)
-    if current_user.role != 'STUDENT':
+    
+    # Check if user is a student before trying to get Student object
+    if current_user.role != User.Roles.STUDENT:
         return redirect('dashboard')
-    pending_payments = Invoice.objects.filter(payment_status='PENDING', session__student=student)
-    return render(request, 'student_pending_payment.html', {'pending_payments': pending_payments})
+        
+    try:
+        student = Student.objects.get(user=current_user)
+        student_sessions = StudentSession.objects.filter(student=student)
+        pending_payments = Invoice.objects.filter(
+            session__in=student_sessions,
+            payment_status='PENDING'
+        )
+        
+        return render(request, 'student_pending_payment.html', {
+            'pending_payments': pending_payments
+        })
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect('dashboard')
 
 @login_required
 def confirm_payment(request, invoice_id):
