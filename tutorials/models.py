@@ -67,7 +67,7 @@ class Student(models.Model):
 
     def save(self, *args, **kwargs):
         # Automatically set the role to 'STUDENT' when a student object is created
-        if not self.user.role:
+        if not self.user.role or self.user.role != User.Roles.STUDENT:
             self.user.role = User.Roles.STUDENT
             self.user.save()
         super(Student, self).save(*args, **kwargs)
@@ -110,7 +110,7 @@ class Tutor(models.Model):
 
     def save(self, *args, **kwargs):
         # Automatically set the role to 'TUTOR' when a tutor object is created
-        if not self.user.role:
+        if not self.user.role or self.user.role != User.Roles.TUTOR:
             self.user.role = User.Roles.TUTOR
             self.user.save()
         super(Tutor, self).save(*args, **kwargs)
@@ -128,8 +128,9 @@ class Admin(models.Model):
 
     def save(self, *args, **kwargs):
         # Automatically set the role to 'ADMIN' when an admin object is created
-        self.user.role = User.Roles.ADMIN
-        self.user.save()
+        if not self.user.role or self.user.role != User.Roles.ADMIN:
+            self.user.role = User.Roles.ADMIN
+            self.user.save()
         super(Admin, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -276,12 +277,13 @@ class RequestedStudentSession(models.Model):
 
         # Now assign the ManyToMany relationship
         tutor_sessions = TutorSession.objects.all()
-        for tutor_session in tutor_sessions:
-            if tutor_session.session.programming_language == self.session.programming_language and tutor_session.session.level == self.session.level and tutor_session.session.season == self.session.season and tutor_session.session.year == self.session.year:
-                self.available_tutor_sessions.add(tutor_session)
+        if tutor_sessions:
+            for tutor_session in tutor_sessions:
+                if tutor_session.session.programming_language == self.session.programming_language and tutor_session.session.level == self.session.level and tutor_session.session.season == self.session.season and tutor_session.session.year == self.session.year:
+                    self.available_tutor_sessions.add(tutor_session)
 
-        # Save the object again after updating the ManyToMany field
-        super(RequestedStudentSession, self).save(*args, **kwargs)
+            # Save the object again after updating the ManyToMany field
+            super(RequestedStudentSession, self).save(*args, **kwargs)
 
     def __str__(self):
         status = "Approved" if self.is_approved else "Pending"
@@ -319,8 +321,6 @@ class Invoice(models.Model):
         'StudentSession',
         on_delete=models.CASCADE,
         related_name='invoices',
-        null=True,
-        blank=True
     )
     amount = models.DecimalField(
         max_digits=10,
