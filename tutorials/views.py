@@ -20,6 +20,7 @@ from tutorials.forms import SessionForm
 from tutorials.models import ProgrammingLanguage, RequestedStudentSession
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
 
@@ -274,19 +275,53 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse(settings.REDIRECT_URL_WHEN_LOGGED_IN)
-    
+
 @login_required
 def list_pending_requests(request):
-    """Display a paginated list of all pending session requests."""
+    """Display a paginated and filterable list of all pending session requests."""
     current_user = request.user
     if current_user.role != 'ADMIN':
         return redirect('dashboard')
-    
+
+    # Fetch filter parameters
+    level_filter = request.GET.get('level')
+    year_filter = request.GET.get('year')
+    language_filter = request.GET.get('language')
+
+    # Base queryset for pending requests
     pending_requests = RequestedStudentSession.objects.filter(is_approved=False)
+
+    # Apply filters
+    if level_filter and level_filter != "All Levels":
+        pending_requests = pending_requests.filter(session__level=level_filter)
+    if year_filter and year_filter != "All Years":
+        pending_requests = pending_requests.filter(session__year=year_filter)
+    if language_filter and language_filter != "All Programming Languages":
+        pending_requests = pending_requests.filter(session__programming_language__name=language_filter)
+
+    # Pagination
     paginator = Paginator(pending_requests, 10)
     page_number = request.GET.get('page')
     requests = paginator.get_page(page_number)
-    return render(request, 'pending_requests.html', {'requests': requests})
+
+    # Fetch distinct levels, years, and programming languages for filter options
+    levels = RequestedStudentSession.objects.values_list('session__level', flat=True).distinct()
+    years = RequestedStudentSession.objects.values_list('session__year', flat=True).distinct()
+    languages = RequestedStudentSession.objects.values_list('session__programming_language__name', flat=True).distinct()
+
+    # Context
+    context = {
+        'requests': requests,
+        'levels': sorted(set(levels)),  # Ensures levels are unique and sorted
+        'years': sorted(set(years)),  # Ensures years are unique and sorted
+        'languages': sorted(set(languages)),  # Ensures languages are unique and sorted
+        'level_filter': level_filter,
+        'year_filter': year_filter,
+        'language_filter': language_filter,
+    }
+
+    return render(request, 'pending_requests.html', context)
+
     
 @login_required
 def list_tutors(request):
@@ -324,15 +359,16 @@ def list_students(request):
 def student_detail(request, student_id):
     """Display the details of a specific student."""
     current_user = request.user
-    if current_user.role != 'ADMIN':
-        return redirect('dashboard')
+
+    if current_user.role != 'ADMIN' and current_user.role != 'TUTOR':
+        return redirect('dashboard')  # Redirect non-admin/tutors to their dashboard
+
     try:
         student = Student.objects.get(pk=student_id)
     except Student.DoesNotExist:
         raise Http404(f"Could not find student with primary key {student_id}")
-    else:
-        context = {'student': student, 'student_id': student_id}
-        return render(request, 'student_detail.html', context)
+
+    return render(request, 'student_detail.html', {'student': student})
 
 @login_required
 def delete_student(request, student_id):

@@ -351,3 +351,8 @@ h3.profile-title {
   font-size: 0.875rem; /* Adjust font size */
   height: auto; /* Reset any conflicting height rules */
 }
+
+.custom-small-btn {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+}

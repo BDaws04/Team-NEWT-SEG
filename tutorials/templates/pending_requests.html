@@ -4,6 +4,41 @@
     <h1 class="text-center mb-4">Requested Student Sessions</h1>
     <p class="text-center">Here is a list of all requested student sessions.</p>
 
+    <!-- Filters -->
+    <form method="get" class="mb-4 d-flex justify-content-between">
+        <div class="form-group me-2">
+            <label for="level">Filter by Level:</label>
+            <select name="level" id="level" class="form-select">
+                <option>All Levels</option>
+                {% for level in levels %}
+                <option value="{{ level }}" {% if level_filter == level %}selected{% endif %}>{{ level }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group me-2">
+            <label for="year">Filter by Year:</label>
+            <select name="year" id="year" class="form-select">
+                <option>All Years</option>
+                {% for year in years %}
+                <option value="{{ year }}" {% if year_filter == year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group me-2">
+            <label for="language">Filter by Programming Language:</label>
+            <select name="language" id="language" class="form-select">
+                <option>All Programming Languages</option>
+                {% for language in languages %}
+                <option value="{{ language }}" {% if language_filter == language %}selected{% endif %}>{{ language }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group align-self-end">
+            <button type="submit" class="btn btn-secondary">Apply Filters</button>
+            <a href="{% url 'pending_requests' %}" class="btn btn-secondary">Reset Filters</a>
+        </div>
+    </form>
+
     <!-- Table displaying session requests -->
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
