@@ -472,11 +472,12 @@ def available_tutors(request, request_id):
     except RequestedStudentSession.DoesNotExist:
         raise Http404(f"Could not find session request with primary key {request_id}")
     else:
+        requested_session.save()
         tutors = requested_session.available_tutor_sessions.all()
         print(f"Available tutors: {tutors}")
         paginator = Paginator(tutors, 10)
         page_number = request.GET.get('page')
-        tutors = paginator.get_page(page_number)
+        tutors = paginator.get_page(page_number)                  
         context = {'tutors': tutors, 'request_id': request_id}
         return render(request, 'available_tutors.html', context)
     

@@ -8,7 +8,7 @@ from django.core.validators import MinValueValidator
 from datetime import date, datetime, timedelta
 from datetime import datetime, timedelta
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
 from django.utils import timezone
 
@@ -125,6 +125,13 @@ class Tutor(models.Model):
 
 class Admin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
+
+    def save(self, *args, **kwargs):
+        # Automatically set the role to 'ADMIN' when an admin object is created
+        self.user.role = User.Roles.ADMIN
+        self.user.save()
+        super(Admin, self).save(*args, **kwargs)
+
     def __str__(self):
         return f'Admin: {self.user.full_name()}'
 
@@ -181,7 +188,7 @@ class Session(models.Model):
     )
     year = models.PositiveIntegerField(
         help_text="Enter the year (e.g., 2024)",
-        validators=[MinValueValidator(2024)]
+        validators=[MinValueValidator(2024), MaxValueValidator(2026)]
     )
     frequency = models.CharField(
         max_length=20,
@@ -261,22 +268,19 @@ class RequestedStudentSession(models.Model):
         verbose_name_plural = "Requested Student Sessions"
 
     def save(self, *args, **kwargs):
-        if self.is_approved and 'is_approved' not in kwargs.get('update_fields', []):
+        if self.is_approved:
             raise ValueError("Cannot modify an already approved request.")
 
-       
+        # First save the object to get an ID before setting the ManyToMany field
         super(RequestedStudentSession, self).save(*args, **kwargs)
 
-        if not self.is_approved:
-           
-            eligible_tutor_sessions = TutorSession.objects.filter(session=self.session)
-            if eligible_tutor_sessions.exists():
-                print(f"Populating available tutor sessions for {self}: {eligible_tutor_sessions}")
-            else:
-                print(f"No available tutor sessions found for session '{self.session}'.")
+        # Now assign the ManyToMany relationship
+        tutor_sessions = TutorSession.objects.all()
+        for tutor_session in tutor_sessions:
+            if tutor_session.session.programming_language == self.session.programming_language and tutor_session.session.level == self.session.level and tutor_session.session.season == self.session.season and tutor_session.session.year == self.session.year:
+                self.available_tutor_sessions.add(tutor_session)
 
-            
-            self.available_tutor_sessions.set(eligible_tutor_sessions)
+        # Save the object again after updating the ManyToMany field
         super(RequestedStudentSession, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -298,7 +302,6 @@ class StudentSession(models.Model):
     def save(self, *args, **kwargs):
         if not self.tutor_session.session.is_available:
             raise ValueError("Cannot create a session for a student when the session is not available.")
-            raise ValueError("Cannot register a student for a session that is unavailable.")
         self.tutor_session.session.is_available = False
         self.tutor_session.session.save()
         super(StudentSession, self).save(*args, **kwargs)
