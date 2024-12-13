@@ -1,17 +1,59 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<div class="profile-card">
-    <div class="profile-image">
-        <img src="{{ student.user.gravatar }}" alt="Gravatar of {{ student.user.username }}" />
-    </div>
-    <div class="profile-details">
-        <h1>{{ student.user.full_name }}</h1>
-        <p><strong>Username:</strong> {{ student.user.username }}</p>
-        <p><strong>Email:</strong> {{ student.user.email }}</p>
-    </div>
+<div class="container mt-5">
 
-    <div class="back-button">
-        <a href="{% url 'list_students' %}" class="btn btn-secondary">Back to Student List</a>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="row g-0">
+
+                    <div class="col-md-4 text-center bg-light p-4 d-flex align-items-center justify-content-center">
+                        <img src="{{ student.user.gravatar }}" alt="Gravatar of {{ student.user.username }}" class="img-fluid rounded-circle shadow" style="max-width: 150px;">
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h1 class="card-title">{{ student.user.full_name }}</h1>
+                            <p class="card-text"><strong>Username:</strong> {{ student.user.username }}</p>
+                            <p class="card-text"><strong>Email:</strong> {{ student.user.email }}</p>
+                            <p class="card-text"><strong>Registered On:</strong> {{ student.user.date_joined }}</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+         
+                            <a href="{% url 'list_students' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Student List
+                            </a>
+             
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="bi bi-trash"></i> Delete Student
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this student?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'delete_student' student.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Student</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -8,11 +8,11 @@ body.main-page {
   background-size: cover;
 }
 
+
 body {
   font-family: Menlo, Monaco, monospace; 
   font-weight: bold; 
 }
-
 
 
 /*
@@ -164,7 +164,7 @@ h3.profile-title {
 
 /* Style for the Sign Up button */
 .custom-banner a.btn-signup {
-  background-color: #337636; 
+  background-color: #2b6337; 
   color: white; 
   font-size: 1.2rem;
   font-weight: bold;
@@ -219,7 +219,7 @@ h3.profile-title {
 
 
 .btn-primary {
-  background-color: #007bff;
+  background-color: #43484e;
   border: none;
   padding: 10px 20px;
   font-size: 16px;
@@ -235,5 +235,124 @@ h3.profile-title {
 }
 
 
+.btn-success {
+  background-color: #083012;
+  border: none;
+  padding: 10px 20px;
+  height: 150px;
+  font-size: 16px;
+  border-radius: 5px;
+  color: rgb(188, 194, 188);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-success:hover {
+  background-color: #1b382f;
+}
+
+.table {
+  margin-top: 20px;
+}
+
+.pagination {
+  margin-top: 20px;
+}
+
+.text-center {
+  margin-bottom: 20px;
+}
+
+.btn {
+  display: flex;
+  background-color: #083012;
+  color: rgb(188, 194, 188);
+  justify-content: center;
+  align-items: center;
+  /*height: 50px;  Set a fixed height */
+  font-size: 1rem; /* Adjust font size */
+  text-align: center;
+  white-space: normal;
+  border-radius: 15px; /* Rounded corners */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover {
+  transform: scale(1.05); /* Slight hover effect */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #1b382f;
+}
 
 
+.row.g-3 > .col-md-4,
+.row.g-3 > .col-md-6 {
+  padding: 10px; /* Ensure proper spacing between buttons */
+}
+
+.text-center i {
+  font-size: 1.5rem; /* Icon size */
+  margin-bottom: 5px; /* Space between icon and text */
+}
+
+/* Adjust button dimensions */
+.custom-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 180px; /* Slightly larger */
+  font-size: 1.2rem;
+  text-align: center;
+  border-radius: 15px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover effects */
+.custom-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Font awesome icons styling */
+.custom-btn i {
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* Equal size for grid columns */
+.row-cols-md-3 .col {
+  flex: 1;
+}
+
+/* Adjust spacing between rows and columns */
+.row-cols-md-3 {
+  gap: 20px;
+}
+
+
+.card {
+  border-radius: 15px;
+  overflow: hidden;
+}
+.card-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+.card-footer {
+  background-color: #f8f9fa;
+}
+.img-fluid {
+  max-width: 150px;
+  border: 3px solid #007bff;
+}
+
+.table td .btn {
+  padding: 5px 10px;
+  font-size: 0.875rem; /* Adjust font size */
+  height: auto; /* Reset any conflicting height rules */
+}
+
+.custom-small-btn {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+}

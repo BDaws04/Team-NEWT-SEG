@@ -77,7 +77,7 @@ class ProfileViewTest(TestCase):
         self.assertEqual(self.user.last_name, 'Doe')
         self.assertEqual(self.user.email, 'johndoe@example.org')
 
-    def test_succesful_profile_update(self):
+    def test_succesful_profile_update_for_admin(self):
         self.client.login(username=self.user.username, password='Password123')
         before_count = User.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
@@ -85,7 +85,7 @@ class ProfileViewTest(TestCase):
         self.assertEqual(after_count, before_count)
         response_url = reverse('dashboard')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'dashboard.html')
+        self.assertTemplateUsed(response, 'admin_dashboard.html')
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.SUCCESS)
@@ -94,6 +94,44 @@ class ProfileViewTest(TestCase):
         self.assertEqual(self.user.first_name, 'John2')
         self.assertEqual(self.user.last_name, 'Doe2')
         self.assertEqual(self.user.email, 'johndoe2@example.org')
+    
+    def test_succesful_profile_update_for_student(self):
+        user = User.objects.get(username='@janedoe')
+        self.client.login(username=user.username, password='Password123')
+        before_count = User.objects.count()
+        response = self.client.post(self.url, self.form_input, follow=True)
+        after_count = User.objects.count()
+        self.assertEqual(after_count, before_count)
+        response_url = reverse('dashboard')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'student_dashboard.html')
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.SUCCESS)
+        user.refresh_from_db()
+        self.assertEqual(user.username, '@johndoe2')
+        self.assertEqual(user.first_name, 'John2')
+        self.assertEqual(user.last_name, 'Doe2')
+        self.assertEqual(user.email, 'johndoe2@example.org')
+
+    def test_succesful_profile_update_for_tutor(self):
+        user = User.objects.get(username='@petrapickles')
+        self.client.login(username=user.username, password='Password123')
+        before_count = User.objects.count()
+        response = self.client.post(self.url, self.form_input, follow=True)
+        after_count = User.objects.count()
+        self.assertEqual(after_count, before_count)
+        response_url = reverse('dashboard')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'tutor_dashboard.html')
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.SUCCESS)
+        user.refresh_from_db()
+        self.assertEqual(user.username, '@johndoe2')
+        self.assertEqual(user.first_name, 'John2')
+        self.assertEqual(user.last_name, 'Doe2')
+        self.assertEqual(user.email, 'johndoe2@example.org')
 
     def test_post_profile_redirects_when_not_logged_in(self):
         redirect_url = reverse_with_next('log_in', self.url)

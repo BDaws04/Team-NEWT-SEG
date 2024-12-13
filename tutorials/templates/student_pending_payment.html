@@ -1,0 +1,51 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Pending Invoices</h1>
+
+    {% if pending_payments %}
+    {% for pending_payment in pending_payments %}
+    {% if pending_payment.payment_status == 'PENDING' %}
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Invoice Details</h5>
+            <p class="card-text">You have a pending invoice for your tutoring session.</p>
+
+            <table class="table">
+                <tr>
+                    <th>Amount Due:</th>
+                    <td>${{ pending_payment.amount }}</td>
+                </tr>
+                <tr>
+                    <th>Due Date:</th>
+                    <td>{{ pending_payment.due_date }}</td>
+                </tr>
+                <tr>
+                    <th>Tutor:</th>
+                    <td>{{ pending_payment.session.tutor_session.tutor.user.full_name }}</td>
+                </tr>
+                <tr>
+                    <th>Session:</th>
+                    <td>{{ pending_payment.session.tutor_session.session }}</td>
+                </tr>
+            </table>
+
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle"></i> Please ensure you have made the payment before confirming below.
+            </div>
+
+            <form method="post" action="{% url 'confirm_payment' pending_payment.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Confirm Payment Made</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% else %}
+    <div class="alert alert-info text-center" role="alert">
+        You have no pending invoices at this time.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

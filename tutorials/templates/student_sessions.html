@@ -1,0 +1,82 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Your Sessions</h1>
+    <p class="text-center">Here is a list of your sessions.</p>
+
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Session</th>
+                <th>Tutor</th>
+                <th>Student</th>
+                <th>Status</th>
+                <th>Send Invoice</th>
+                <th>Remove</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in sessions %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ session.tutor_session.session }}</td>
+                <td>{{ session.tutor_session.tutor.user.full_name }}</td>
+                <td>{{ session.student.user.full_name }}</td>
+                <td>{{ session.status }}</td>
+                <td>
+                    <form action="{% url 'send_invoice' session.id %}" method="post">
+                        {% csrf_token %}
+                        {% if session.status == 'Send Invoice' %}
+                        <button type="submit" class="btn btn-secondary btn-sm">Send Invoice</button>
+                        {% else %}
+                        <button type="submit" class="btn btn-secondary btn-sm" disabled>Invoice Sent</button>
+                        {% endif %}
+                    </form>
+                </td>
+                <td>
+                    <form action="{% url 'remove_session' session.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not sessions %}
+<p class="text-center">No sessions found.</p>
+{% endif %}
+
+
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if sessions.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ sessions.previous_page_number }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo; Previous</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">&laquo; Previous</span>
+        </li>
+        {% endif %}
+
+        <li class="page-item disabled">
+            <span class="page-link">Page {{ sessions.number }} of {{ sessions.paginator.num_pages }}</span>
+        </li>
+
+        {% if sessions.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ sessions.next_page_number }}" aria-label="Next">
+                <span aria-hidden="true">Next &raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}

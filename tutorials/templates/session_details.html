@@ -1,0 +1,17 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Session Details</h1>
+    <p><strong>Session:</strong> {{ tutor_session.session.programming_language.name }} ({{ tutor_session.session.level }})</p>
+    <p><strong>Tutor:</strong> {{ tutor_session.tutor.user.full_name }}</p>
+    <h3>Registered Students</h3>
+    <ul>
+        {% for student_session in tutor_session.student_sessions.all %}
+            <li>{{ student_session.student.user.full_name }}</li>
+        {% empty %}
+            <li>No students registered for this session.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

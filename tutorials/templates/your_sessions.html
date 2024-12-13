@@ -1,0 +1,31 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container">
+  <h1>Your Sessions</h1>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Session</th>
+        <th>Tutor</th>
+        <th>Status</th>
+        <th>Registered At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for session in student_sessions %}
+      <tr>
+        <td>{{ session.tutor_session.session.programming_language.name }} ({{ session.tutor_session.session.level }})</td>
+        <td>{{ session.tutor_session.tutor.user.full_name }}</td>
+        <td>{{ session.status }}</td>
+        <td>{{ session.registered_at }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4">No sessions found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

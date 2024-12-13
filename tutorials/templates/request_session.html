@@ -1,0 +1,33 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Request a New Session</h2>
+
+    {% if message %}
+        <div class="alert alert-info text-center">
+            {{ message }}
+        </div>
+    {% else %}
+        <div class="card shadow p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row mb-3">
+                    {% for field in form %}
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-secondary btn-lg">Submit</button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

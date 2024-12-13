@@ -1,0 +1,80 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Tutor List</h1>
+    <p class="text-center">Here is a list of all registered tutors.</p>
+
+    <div class="d-flex justify-content-end mb-3">
+        {% if sort_order == 'asc' %}
+        <a href="?sort=desc" class="btn btn-primary">
+            Sort Descending
+        </a>
+        {% else %}
+        <a href="?sort=asc" class="btn btn-primary">
+            Sort Ascending
+        </a>
+        {% endif %}
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Profile</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tutor in tutors %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ tutor.user.first_name }} {{ tutor.user.last_name }}</td>
+                <td>{{ tutor.user.username }}</td>
+                <td>{{ tutor.user.email }}</td>
+                <td>
+                    <a href="{% url 'tutor_detail' tutor.id %}" class="btn btn-primary btn-sm">View Profile</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not tutors %}
+    <p class="text-center">No tutors found.</p>
+    {% endif %}
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if tutors.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ tutors.previous_page_number }}&sort={{ sort_order }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo; Previous</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo; Previous</span>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Page {{ tutors.number }} of {{ tutors.paginator.num_pages }}</span>
+            </li>
+
+            {% if tutors.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ tutors.next_page_number }}&sort={{ sort_order }}" aria-label="Next">
+                    <span aria-hidden="true">Next &raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next &raquo;</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

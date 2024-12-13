@@ -1,0 +1,69 @@
+{% extends "base_content.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Invoices</h1>
+    <p class="text-center">Here is a list of all invoices for student lessons with tutors.</p>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th>Tutor</th>
+                <th>Created At</th>
+                <th>Amount</th>
+                <th>Payment Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ invoice.session.student.user.full_name }}</td>
+                <td>{{ invoice.session.tutor_session.tutor.user.full_name }}</td>
+                <td>{{ invoice.created_at }}</td>
+                <td>{{ invoice.amount }}</td>
+                <td>{{ invoice.payment_status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not invoices %}
+    <p class="text-center">No invoices found.</p>
+    {% endif %}
+
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if invoices.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ invoices.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo; Previous</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo; Previous</span>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Page {{ invoices.number }} of {{ invoices.paginator.num_pages }}</span>
+            </li>
+
+            {% if invoices.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ invoices.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">Next &raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next &raquo;</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

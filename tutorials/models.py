@@ -6,6 +6,11 @@ from django.utils.timezone import now
 from datetime import datetime, timedelta
 from django.core.validators import MinValueValidator
 from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from decimal import Decimal
+from django.utils import timezone
 
 def calculate_end_date(start_date, duration_weeks):
     return start_date + timedelta(weeks=duration_weeks,days=4)
@@ -33,7 +38,7 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=10,
         choices=Roles.choices,
-        default=Roles.ADMIN,
+        default=Roles.STUDENT,
         blank=False
     )
 
@@ -44,11 +49,6 @@ class User(AbstractUser):
     def full_name(self):
         """Return a string containing the user's full name."""
         return f'{self.first_name} {self.last_name}'
-    
-    def role(self):
-        """Return a string containing the user's role."""
-
-        return self.role
 
     def gravatar(self, size=120):
         """Return a URL to the user's gravatar."""
@@ -67,13 +67,13 @@ class Student(models.Model):
 
     def save(self, *args, **kwargs):
         # Automatically set the role to 'STUDENT' when a student object is created
-        if not self.user.role:
+        if not self.user.role or self.user.role != User.Roles.STUDENT:
             self.user.role = User.Roles.STUDENT
             self.user.save()
         super(Student, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'Student: {self.user.get_full_name()}'
+        return f'Student: {self.user.full_name()}'
 
 
 class ProgrammingLanguage(models.Model):
@@ -110,7 +110,7 @@ class Tutor(models.Model):
 
     def save(self, *args, **kwargs):
         # Automatically set the role to 'TUTOR' when a tutor object is created
-        if not self.user.role:
+        if not self.user.role or self.user.role != User.Roles.TUTOR:
             self.user.role = User.Roles.TUTOR
             self.user.save()
         super(Tutor, self).save(*args, **kwargs)
@@ -121,16 +121,20 @@ class Tutor(models.Model):
     expertise_list.short_description = 'Expertise'
 
     def __str__(self):
-        return f'Tutor: {self.user.username}'
+        return f'Tutor: {self.user.full_name()}'
 
 class Admin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
+
+    def save(self, *args, **kwargs):
+        # Automatically set the role to 'ADMIN' when an admin object is created
+        if not self.user.role or self.user.role != User.Roles.ADMIN:
+            self.user.role = User.Roles.ADMIN
+            self.user.save()
+        super(Admin, self).save(*args, **kwargs)
+
     def __str__(self):
         return f'Admin: {self.user.full_name()}'
-
-from datetime import datetime, timedelta
-from django.db import models
-from django.core.validators import MinValueValidator
 
 
 def calculate_end_date(start_date, duration_weeks):
@@ -185,11 +189,11 @@ class Session(models.Model):
     )
     year = models.PositiveIntegerField(
         help_text="Enter the year (e.g., 2024)",
-        validators=[MinValueValidator(2024)]
+        validators=[MinValueValidator(2024), MaxValueValidator(2026)]
     )
     frequency = models.CharField(
         max_length=20,
-        choices=[('Weekly', 'Weekly'), ('By Weekly', 'By Weekly')],
+        choices=[('Weekly', 'Weekly'), ('Bi-Weekly', 'Bi-Weekly')],
         default='Weekly'
     )
     duration_hours = models.PositiveIntegerField(
@@ -215,7 +219,7 @@ class Session(models.Model):
 
         self.end_day = calculate_end_date(self.start_day, duration_weeks)
 
-        # Ensure end_day is a date object
+        
         if isinstance(self.end_day, datetime):
             self.end_day = self.end_day.date()
 
@@ -240,13 +244,16 @@ class TutorSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, null=True)
 
-    def __str__(self):
-        return f'Tutor: {self.tutor.user.get_full_name()} - Session: {self.session}'
+    class Meta:
+        unique_together = ('tutor', 'session') 
 
-    def assign_to_tutor(self, tutor, session):
-        self.tutor = tutor
-        self.session = session
-        self.save()
+    def __str__(self):
+        return f'Tutor: {self.tutor.user.full_name()} - Session: {self.session}'
+
+    def save(self, *args, **kwargs):
+        if not self.pk and TutorSession.objects.filter(tutor=self.tutor, session=self.session).exists():
+            raise ValueError(f"A TutorSession already exists for tutor '{self.tutor}' and session '{self.session}'.")
+        super(TutorSession, self).save(*args, **kwargs)
 
 class RequestedStudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='requested_sessions')
@@ -255,90 +262,107 @@ class RequestedStudentSession(models.Model):
     is_approved = models.BooleanField(default=False, help_text="Indicates if the session request is approved")
     available_tutor_sessions = models.ManyToManyField('TutorSession', related_name='requested_sessions', blank=True)
 
-    def approve_request(self, tutor_session):
-        if self.is_approved or not tutor_session.session.is_available:
-            raise ValueError("Cannot approve a request for a session that is not available or already approved.")
-        
-        tutor_session.session.is_available = False
-        tutor_session.session.save()
-        StudentSession.objects.create(student=self.student, tutor_session=tutor_session)
-        self.is_approved = True
-        self.save()
-
-    def filter_unapproved_requests(self):
-        return RequestedStudentSession.objects.filter(is_approved=False)
+    class Meta:
+        unique_together = ('student', 'session')
+        ordering = ['-requested_at']
+        verbose_name = "Requested Student Session"
+        verbose_name_plural = "Requested Student Sessions"
 
     def save(self, *args, **kwargs):
         if self.is_approved:
             raise ValueError("Cannot modify an already approved request.")
-        tutor_sessions = TutorSession.objects.filter(session=self.session)
-        self.available_tutor_sessions.set(tutor_sessions)
+
+        # First save the object to get an ID before setting the ManyToMany field
         super(RequestedStudentSession, self).save(*args, **kwargs)
+
+        # Now assign the ManyToMany relationship
+        tutor_sessions = TutorSession.objects.all()
+        if tutor_sessions:
+            for tutor_session in tutor_sessions:
+                if tutor_session.session.programming_language == self.session.programming_language and tutor_session.session.level == self.session.level and tutor_session.session.season == self.session.season and tutor_session.session.year == self.session.year:
+                    self.available_tutor_sessions.add(tutor_session)
+
+            # Save the object again after updating the ManyToMany field
+            super(RequestedStudentSession, self).save(*args, **kwargs)
 
     def __str__(self):
         status = "Approved" if self.is_approved else "Pending"
-        return f'Request by {self.student.user.get_full_name()} for {self.session} - {status}' 
-    
+        return f'Request by {self.student.user.full_name()} for {self.session} - {status}'
+
+
 class StudentSession(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
     tutor_session = models.ForeignKey(TutorSession, on_delete=models.CASCADE, related_name='student_sessions')
     registered_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[('Send Invoice', 'Send Invoice'), ('Payment Pending', 'Payment Pending'), ('Approved', 'Approved'), ('Cancelled', 'Cancelled')], default='Send Invoice')
 
     class Meta:
         unique_together = ('student', 'tutor_session')
+        verbose_name = "Student Session"
+        verbose_name_plural = "Student Sessions"
 
     def save(self, *args, **kwargs):
-        if not self.tutor_session.session.is_available:
-            raise ValueError("Cannot create a session for a student when the session is not available.")
         self.tutor_session.session.is_available = False
         self.tutor_session.session.save()
         super(StudentSession, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.student.user.get_full_name()} -> {self.tutor_session}'
+        return f'{self.student.user.full_name()} -> {self.tutor_session}'
 
-
-    """
-    class Session(models.Model):
-    SEASONS = [
-        ('Fall', 'Fall'),
-        ('Spring', 'Spring'),
-        ('Summer', 'Summer'),
+class Invoice(models.Model):
+    PAYMENT_STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+        ('OVERDUE', 'Overdue'),
+        ('CANCELLED', 'Cancelled'),
     ]
-    programming_language = models.ForeignKey(
-        'ProgrammingLanguage',
+
+    session = models.ForeignKey(
+        'StudentSession',
         on_delete=models.CASCADE,
-        related_name='sessions',
-        default=1, 
-        help_text="Select the programming language for the session"
+        related_name='invoices',
     )
-    tutor = models.ForeignKey('Tutor', on_delete=models.CASCADE, related_name='sessions')
-    level = models.CharField(max_length=20, choices=[
-        ('beginner', 'Beginner'),
-        ('intermediate', 'Intermediate'),
-        ('advanced', 'Advanced'),
-    ])
-    season = models.CharField(
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        null=True,
+        blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    payment_status = models.CharField(
         max_length=20,
-        choices=SEASONS,
-        default='Fall',
-        help_text="Select the season for the session"
+        choices=PAYMENT_STATUS_CHOICES,
+        default='PENDING'
     )
-    frequency = models.CharField(max_length=20, choices=[('Weekly','Weekly'),('By Weekly','By Weekly')], default='Weekly')
-    year = models.PositiveIntegerField(help_text="Enter the year (e.g., 2024)",default=2024)
-    start_time = models.DateTimeField(default=now)
-    end_time = models.DateTimeField(default=default_end_time)
-    is_availble = models.BooleanField(default=True, help_text="Indicates if the session is available for registration")
+    payment_date = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    due_date = models.DateField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        if self.start_time >= self.end_time:
-            raise ValueError("Session start time must be earlier than end time.")
-        
-        if self.end_time < now():
-            self.is_availble = False
-        
-        super(Session, self).save(*args, **kwargs)
+        if self.session:
+            session = self.session.tutor_session.session
+            
+            if session.duration_hours <= 1:
+                self.amount = Decimal('30.00')
+            elif session.duration_hours <= 2:
+                self.amount = Decimal('50.00')
+                
+            if not self.due_date:
+                self.due_date = timezone.now().date() + timedelta(days=30)  # Due in 30 days
+                
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.programming_language.name} ({self.level}) - {self.season} {self.year} - {self.tutor.user.get_full_name()} - {self.frequency}'
-    """
+        return f"Invoice #{self.id} - {self.session.student.user.get_full_name()} - {self.payment_status}"
+
+    def mark_as_paid(self):
+        from django.utils import timezone
+        self.payment_status = 'PAID'
+        self.payment_date = timezone.now().date()
+        self.save()
+
+    

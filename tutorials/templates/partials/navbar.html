@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
   <div class="container">
-    <!-- Brand Logo -->
+
     <a class="navbar-brand" href="{% url 'dashboard' %}"> Code Tutors </a>
     <button
       class="navbar-toggler"
@@ -14,11 +14,16 @@
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- Navbar Links -->
+
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ms-auto">
+       
+        <li class="nav-item">
+          <button class="btn btn-secondary me-3" onclick="window.history.back()">Back</button>
+        </li>
+
         {% if user.is_authenticated %}
-          <!-- Profile Dropdown -->
+          
           <li class="nav-item dropdown">
             <a
               class="nav-link dropdown-toggle"
@@ -41,7 +46,7 @@
             </ul>
           </li>
         {% else %}
-          <!-- Login/Sign Up for Unauthenticated Users -->
+         
           <li class="nav-item">
             <a class="nav-link" href="{% url 'log_in' %}">Login</a>
           </li>
@@ -54,7 +59,7 @@
   </div>
 </nav>
 
-<!-- Logout Confirmation Modal -->
+
 <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">

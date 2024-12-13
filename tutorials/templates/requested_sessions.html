@@ -1,0 +1,29 @@
+{% extends 'base_content.html' %}
+
+{% block content %}
+<div class="container">
+  <h1>Requested Sessions</h1>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Session</th>
+        <th>Requested At</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for request in requested_sessions %}
+      <tr>
+        <td>{{ request.session.programming_language.name }} ({{ request.session.level }})</td>
+        <td>{{ request.requested_at }}</td>
+        <td>{% if request.is_approved %}Approved{% else %}Pending{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3">No requested sessions found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
