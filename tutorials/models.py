@@ -321,6 +321,7 @@ class Invoice(models.Model):
         'StudentSession',
         on_delete=models.CASCADE,
         related_name='invoices',
+        default=None
     )
     amount = models.DecimalField(
         max_digits=10,
