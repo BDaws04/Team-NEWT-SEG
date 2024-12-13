@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from tutorials.forms import UserForm
 from tutorials.models import User
-from tutorials.tests.helpers import reverse_with_next
+from tutorials.tests.helper_classes import reverse_with_next
 
 class ProfileViewTest(TestCase):
     """Test suite for the profile view."""

@@ -2,7 +2,7 @@ from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from tutorials.models import User
-from tutorials.helpers import login_prohibited, get_user_counts
+from tutorials.helpers import login_prohibited
 
 class TestLoginProhibitedDecorator(TestCase):
     """Tests for the login_prohibited decorator."""
@@ -41,33 +41,16 @@ class TestLoginProhibitedDecorator(TestCase):
         response = mock_view(request)
         self.assertEqual(response, "Access granted")
 
+    def test_post_request_if_logged_in(self):
+        """Check that POST requests are also redirected if logged in."""
+        request = self.factory.post('/')
+        request.user = self.user
 
-class TestGetUserCounts(TestCase):
-    """Tests for the get_user_counts helper function."""
+        @login_prohibited
+        def mock_view(request):
+            return "Access granted"
 
-    def setUp(self):
-        User.objects.create_user(
-            username="student1",
-            email="student1@example.com",
-            password="password123",
-            role=User.Roles.STUDENT
-        )
-        User.objects.create_user(
-            username="tutor1",
-            email="tutor1@example.com",
-            password="password123",
-            role=User.Roles.TUTOR
-        )
-        User.objects.create_user(
-            username="admin1",
-            email="admin1@example.com",
-            password="password123",
-            role=User.Roles.ADMIN
-        )
+        response = mock_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('dashboard'))
 
-    def test_user_counts(self):
-        """Check that the user counts are correct."""
-        counts = get_user_counts()
-        self.assertEqual(counts['total_users'], 3)
-        self.assertEqual(counts['student_count'], 1)
-        self.assertEqual(counts['tutor_count'], 1)
