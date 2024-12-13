@@ -50,3 +50,9 @@ class DeleteStudentViewTestCase(TestCase):
         non_existing_url = reverse('student_detail', kwargs={'student_id': 9999})
         response = self.client.post(non_existing_url)
         self.assertEqual(response.status_code, 404)
+
+    def test_delete_student_non_existing_student_correct_url(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        non_existing_url = reverse('delete_student', kwargs={'student_id': 9999})
+        response = self.client.post(non_existing_url)
+        self.assertEqual(response.status_code, 404)

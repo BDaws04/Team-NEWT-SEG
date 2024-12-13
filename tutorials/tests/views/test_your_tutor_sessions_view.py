@@ -79,3 +79,26 @@ class YourTutorSessionsViewTestCase(TestCase):
         self.assertEqual(len(sessions), 1)
         self.assertEqual(sessions[0], self.tutor_session)
         self.assertNotIn(other_tutor_session, sessions)
+
+    def test_get_your_tutor_sessions_student_redirect(self):
+        self.client.login(username=self.student_user.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_your_tutor_sessions_post_request(self):
+        self.client.login(username=self.tutor_user.username, password='Password123')
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'your_tutor_sessions.html')
+        self.assertIn('tutor_sessions', response.context)
+
+    def test_get_your_tutor_sessions_with_tutor_role_no_profile(self):
+        # Create a user with tutor role but no Tutor profile
+        user_without_profile = User.objects.create_user(
+            username='@notutor',
+            password='Password123',
+            role='TUTOR'
+        )
+        self.client.login(username=user_without_profile.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 404)

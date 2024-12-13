@@ -83,3 +83,23 @@ class RequestedSessionsViewTestCase(TestCase):
         self.assertTemplateUsed(response, 'requested_sessions.html')
         sessions = response.context['requested_sessions']
         self.assertEqual(len(sessions), 0)
+
+    def test_requested_sessions_post_request(self):
+        self.client.login(username=self.student_user.username, password='Password123')
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'requested_sessions.html')
+        self.assertIn('requested_sessions', response.context)
+
+    def test_get_requested_sessions_with_student_role_no_profile(self):
+        # Create a user with student role but no Student profile
+        user_without_profile = User.objects.create_user(
+            username='@nostudent',
+            password='Password123',
+            role='STUDENT'
+        )
+        self.client.login(username=user_without_profile.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        sessions = response.context['requested_sessions']
+        self.assertEqual(len(sessions), 0)

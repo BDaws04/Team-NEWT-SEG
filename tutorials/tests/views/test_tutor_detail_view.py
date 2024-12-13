@@ -46,9 +46,22 @@ class TutorDetailViewTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('log_in'), response.url)
 
-    def test_tutor_detail_non_existing_student(self):
+    def test_tutor_detail_non_existing_tutor(self):
         self.client.login(username=self.admin_user.username, password='Password123')
         non_existing_url = reverse('tutor_detail', kwargs={'tutor_id': 9999})
         response = self.client.get(non_existing_url)
         self.assertEqual(response.status_code, 404)
-        
+
+    def test_tutor_detail_post_request(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'tutor_detail.html')
+        self.assertEqual(response.context['tutor'], self.tutor)
+        self.assertEqual(response.context['tutor_id'], self.tutor.pk)
+
+    def test_tutor_detail_with_invalid_id_format(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        url = '/list-tutors/tutor/invalid/'  # Use direct URL instead of reverse()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)

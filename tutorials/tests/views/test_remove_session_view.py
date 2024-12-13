@@ -68,3 +68,20 @@ class RemoveSessionViewTestCase(TestCase):
         non_existing_url = reverse('remove_session', kwargs={'session_id': 9999})
         response = self.client.get(non_existing_url)
         self.assertEqual(response.status_code, 404)
+
+    def test_remove_session_post_request(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('student_sessions'), status_code=302, target_status_code=200)
+        
+        # Check that session was deleted
+        with self.assertRaises(StudentSession.DoesNotExist):
+            StudentSession.objects.get(pk=self.student_session.pk)
+
+    def test_remove_session_tutor_user_redirect(self):
+        self.client.login(username=self.tutor_user.username, password='Password123')
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
+        
+        # Check that session was not deleted
+        self.assertTrue(StudentSession.objects.filter(pk=self.student_session.pk).exists())

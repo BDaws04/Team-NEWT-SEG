@@ -85,3 +85,53 @@ class AvailableTutorsViewTestCase(TestCase):
         non_existing_url = reverse('available_tutors', kwargs={'request_id': 9999})
         response = self.client.get(non_existing_url)
         self.assertEqual(response.status_code, 404)
+
+    def test_available_tutors_multiple_pages(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        
+        # Create 11 more tutor sessions (12 total)
+        for i in range(11):
+            tutor = Tutor.objects.create(
+                user=User.objects.create(
+                    username=f'@tutor{i}',
+                    first_name=f'Tutor{i}',
+                    last_name='Test',
+                    email=f'tutor{i}@example.org'
+                )
+            )
+            
+            tutor_session = TutorSession.objects.create(
+                tutor=tutor,
+                session=self.session
+            )
+            
+            self.requested_session.available_tutor_sessions.add(tutor_session)
+            
+        # Test first page
+        response = self.client.get(self.url)
+        self.assertEqual(len(response.context['tutors']), 10)  # First page should have 10 items
+        self.assertTrue(response.context['tutors'].has_next())
+        self.assertFalse(response.context['tutors'].has_previous())
+        
+        # Test second page
+        response = self.client.get(f"{self.url}?page=2")
+        self.assertEqual(len(response.context['tutors']), 2)  # Second page should have 2 items
+        self.assertFalse(response.context['tutors'].has_next())
+        self.assertTrue(response.context['tutors'].has_previous())
+        
+        # Test invalid page
+        response = self.client.get(f"{self.url}?page=999")
+        self.assertEqual(len(response.context['tutors']), 2)  # Should show last page
+
+    def test_available_tutors_post_request(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'available_tutors.html')
+        self.assertIn('tutors', response.context)
+        self.assertEqual(response.context['request_id'], self.requested_session.pk)
+
+    def test_get_available_tutors_tutor_redirect(self):
+        self.client.login(username=self.tutor_user.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
