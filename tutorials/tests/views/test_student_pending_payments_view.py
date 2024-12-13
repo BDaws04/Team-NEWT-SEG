@@ -96,3 +96,27 @@ class StudentPendingPaymentsViewTestCase(TestCase):
         self.assertEqual(len(pending_payments), 1)
         self.assertEqual(pending_payments[0], self.invoice)
         self.assertNotIn(other_invoice, pending_payments)
+
+    def test_student_pending_payments_with_non_existent_student(self):
+        # Create a user with student role but no Student profile
+        user_without_student = User.objects.create_user(
+            username='@nostudent',
+            password='Password123',
+            role='STUDENT'
+        )
+        
+        self.client.login(username=user_without_student.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
+
+    def test_student_pending_payments_tutor_redirect(self):
+        self.client.login(username=self.tutor_user.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
+
+    def test_student_pending_payments_post_request(self):
+        self.client.login(username=self.student_user.username, password='Password123')
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'student_pending_payment.html')
+        self.assertIn('pending_payments', response.context)

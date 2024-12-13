@@ -83,3 +83,19 @@ class SessionDetailsViewTestCase(TestCase):
         url = reverse('session_details', kwargs={'session_id': other_student_session.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+    def test_session_details_post_request(self):
+        self.client.login(username=self.student_user.username, password='Password123')
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'session_details.html')
+        self.assertIn('tutor_session', response.context)
+
+    def test_get_session_details_tutor_access(self):
+        self.client.login(username=self.tutor_user.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'session_details.html')
+        self.assertIn('tutor_session', response.context)
+        tutor_session = response.context['tutor_session']
+        self.assertEqual(tutor_session, self.tutor_session)

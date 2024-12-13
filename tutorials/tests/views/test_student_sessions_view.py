@@ -75,3 +75,52 @@ class StudentSessionsViewTestCase(TestCase):
         self.assertEqual(len(sessions), 1)
         self.assertEqual(sessions.number, 1)
         self.assertEqual(sessions.paginator.num_pages, 1)
+
+    def test_student_sessions_multiple_pages(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        
+        # Create 11 more sessions (12 total)
+        for i in range(11):
+            student = Student.objects.create(
+                user=User.objects.create(
+                    username=f'@student{i}',
+                    first_name=f'Student{i}',
+                    last_name='Test',
+                    email=f'student{i}@example.org'
+                )
+            )
+            
+            session = Session.objects.create(
+                programming_language=self.language,
+                level='beginner',
+                season='Fall',
+                year=2024,
+                frequency='Weekly',
+                duration_hours=2
+            )
+            
+            tutor_session = TutorSession.objects.create(
+                tutor=self.tutor,
+                session=session
+            )
+            
+            StudentSession.objects.create(
+                student=student,
+                tutor_session=tutor_session
+            )
+            
+        # Test first page
+        response = self.client.get(self.url)
+        self.assertEqual(len(response.context['sessions']), 10)  # First page should have 10 items
+        self.assertTrue(response.context['sessions'].has_next())
+        self.assertFalse(response.context['sessions'].has_previous())
+        
+        # Test second page
+        response = self.client.get(f"{self.url}?page=2")
+        self.assertEqual(len(response.context['sessions']), 2)  # Second page should have 2 items
+        self.assertFalse(response.context['sessions'].has_next())
+        self.assertTrue(response.context['sessions'].has_previous())
+        
+        # Test invalid page
+        response = self.client.get(f"{self.url}?page=999")
+        self.assertEqual(len(response.context['sessions']), 2)  # Should show last page

@@ -74,3 +74,25 @@ class ConfirmPaymentViewTestCase(TestCase):
         # Verify status updates
         self.assertEqual(self.invoice.payment_status, 'PAID')
         self.assertEqual(self.student_session.status, 'Approved')
+
+    def test_confirm_payment_with_invalid_invoice_id(self):
+        self.client.login(username=self.student_user.username, password='Password123')
+        url = reverse('confirm_payment', kwargs={'invoice_id': 99999})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_confirm_payment_tutor_redirect(self):
+        self.client.login(username=self.tutor_user.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
+
+    def test_confirm_payment_post_request(self):
+        self.client.login(username=self.student_user.username, password='Password123')
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('student_pending_payments'), status_code=302, target_status_code=200)
+        
+        # Verify status updates
+        self.invoice.refresh_from_db()
+        self.student_session.refresh_from_db()
+        self.assertEqual(self.invoice.payment_status, 'PAID')
+        self.assertEqual(self.student_session.status, 'Approved')

@@ -73,3 +73,27 @@ class SendInvoiceViewTestCase(TestCase):
         non_existing_url = reverse('send_invoice', kwargs={'session_id': 9999})
         response = self.client.get(non_existing_url)
         self.assertEqual(response.status_code, 404)
+
+    def test_send_invoice_post_request(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('student_sessions'), status_code=302, target_status_code=200)
+        
+        # Check that invoice was created
+        invoice = Invoice.objects.filter(session=self.student_session).first()
+        self.assertIsNotNone(invoice)
+        self.assertEqual(invoice.session, self.student_session)
+
+    def test_send_invoice_with_invalid_session_status(self):
+        self.client.login(username=self.admin_user.username, password='Password123')
+        
+        # Set an invalid status that will cause ValueError on save
+        self.student_session.status = 'Invalid Status'
+        self.student_session.save()
+        
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('student_sessions'), status_code=302, target_status_code=200)
+        
+        # Check that no invoice was created due to error
+        invoice_count = Invoice.objects.filter(session=self.student_session).count()
+        self.assertEqual(invoice_count, 0)

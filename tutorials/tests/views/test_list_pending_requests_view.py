@@ -15,7 +15,8 @@ class ListPendingRequestsViewTestCase(TestCase):
         self.url = reverse('pending_requests')
         self.admin_user = User.objects.get(username='@johndoe')
         self.student_user = User.objects.get(username='@janedoe')
-        
+        self.tutor_user = User.objects.get(username='@petrapickles')
+
         self.student = Student.objects.create(user=self.student_user)
         
         # Create test data
@@ -43,8 +44,13 @@ class ListPendingRequestsViewTestCase(TestCase):
         redirect_url = reverse('log_in') + f'?next={self.url}'
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
 
-    def test_get_list_pending_requests_redirects_when_not_admin(self):
+    def test_get_list_pending_requests_redirects_when_student(self):
         self.client.login(username=self.student_user.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
+
+    def test_get_list_pending_requests_redirects_when_tutor(self):
+        self.client.login(username=self.tutor_user.username, password='Password123')
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
 
@@ -59,6 +65,9 @@ class ListPendingRequestsViewTestCase(TestCase):
         self.assertIn('levels', response.context)
         self.assertIn('years', response.context)
         self.assertIn('languages', response.context)
+        self.assertIn('level_filter', response.context)
+        self.assertIn('year_filter', response.context)
+        self.assertIn('language_filter', response.context)
         
         # Verify the pending request is in the context
         self.assertEqual(list(response.context['requests']), [self.requested_session])
@@ -69,23 +78,36 @@ class ListPendingRequestsViewTestCase(TestCase):
         # Test with level filter
         response = self.client.get(f"{self.url}?level=beginner")
         self.assertEqual(len(response.context['requests']), 1)
+        self.assertEqual(response.context['level_filter'], 'beginner')
         
         response = self.client.get(f"{self.url}?level=advanced")
         self.assertEqual(len(response.context['requests']), 0)
+        self.assertEqual(response.context['level_filter'], 'advanced')
         
         # Test with year filter
         response = self.client.get(f"{self.url}?year=2024")
         self.assertEqual(len(response.context['requests']), 1)
+        self.assertEqual(response.context['year_filter'], '2024')
         
         response = self.client.get(f"{self.url}?year=2023")
         self.assertEqual(len(response.context['requests']), 0)
+        self.assertEqual(response.context['year_filter'], '2023')
         
         # Test with language filter
         response = self.client.get(f"{self.url}?language=Python")
         self.assertEqual(len(response.context['requests']), 1)
+        self.assertEqual(response.context['language_filter'], 'Python')
         
         response = self.client.get(f"{self.url}?language=Java")
         self.assertEqual(len(response.context['requests']), 0)
+        self.assertEqual(response.context['language_filter'], 'Java')
+        
+        # Test with multiple filters
+        response = self.client.get(f"{self.url}?level=beginner&year=2024&language=Python")
+        self.assertEqual(len(response.context['requests']), 1)
+        self.assertEqual(response.context['level_filter'], 'beginner')
+        self.assertEqual(response.context['year_filter'], '2024')
+        self.assertEqual(response.context['language_filter'], 'Python')
 
     def test_list_pending_requests_pagination(self):
         self.client.login(username=self.admin_user.username, password='Password123')
@@ -106,8 +128,18 @@ class ListPendingRequestsViewTestCase(TestCase):
                 is_approved=False
             )
             
+        # Test first page
         response = self.client.get(self.url)
         self.assertEqual(len(response.context['requests']), 10)  # First page should have 10 items
+        self.assertTrue(response.context['requests'].has_next())
+        self.assertFalse(response.context['requests'].has_previous())
         
+        # Test second page
         response = self.client.get(f"{self.url}?page=2")
         self.assertEqual(len(response.context['requests']), 2)  # Second page should have 2 items
+        self.assertFalse(response.context['requests'].has_next())
+        self.assertTrue(response.context['requests'].has_previous())
+        
+        # Test invalid page
+        response = self.client.get(f"{self.url}?page=999")
+        self.assertEqual(len(response.context['requests']), 2)  # Should show last page

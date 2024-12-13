@@ -2,6 +2,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from tutorials.models import User, Student, Tutor, Session, TutorSession, RequestedStudentSession, ProgrammingLanguage, StudentSession
+from django.http import HttpResponseRedirect
 
 class ApproveSessionViewTestCase(TestCase):
     """Tests of the approve session view."""
@@ -52,8 +53,13 @@ class ApproveSessionViewTestCase(TestCase):
         redirect_url = reverse('log_in') + f'?next={self.url}'
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
 
-    def test_get_approve_session_redirects_when_not_admin(self):
+    def test_get_approve_session_redirects_when_student(self):
         self.client.login(username=self.student_user.username, password='Password123')
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
+
+    def test_get_approve_session_redirects_when_tutor(self):
+        self.client.login(username=self.tutor_user.username, password='Password123')
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('dashboard'), status_code=302, target_status_code=200)
 
@@ -93,3 +99,12 @@ class ApproveSessionViewTestCase(TestCase):
         self.assertEqual(student_session.student, self.student)
         self.assertEqual(student_session.tutor_session, self.tutor_session)
         self.assertFalse(student_session.tutor_session.session.is_available)
+
+    def test_approve_session_with_already_approved_request(self):
+        # First approve the session
+        self.client.login(username=self.admin_user.username, password='Password123')
+        self.client.post(self.url)
+        
+        # Try to approve again
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 404)  # Should return 404 as request no longer exists
