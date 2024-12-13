@@ -22,10 +22,12 @@ def get_user_counts():
     total_users = User.objects.count()
     student_count = User.objects.filter(role='STUDENT').count()
     tutor_count = User.objects.filter(role='TUTOR').count()
+    admin_count = User.objects.filter(role='ADMIN').count()
 
     return {
         'total_users': total_users,
         'student_count': student_count,
         'tutor_count': tutor_count,
+        'admin_count': admin_count,
     }
 

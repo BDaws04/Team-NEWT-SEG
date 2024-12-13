@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 from tutorials.forms import PasswordForm
 from tutorials.models import User, Student, Tutor
-from tutorials.tests.helpers import reverse_with_next
+from tutorials.tests.helper_classes import reverse_with_next
 
 class PasswordViewTest(TestCase):
     """Test suite for the password view."""
